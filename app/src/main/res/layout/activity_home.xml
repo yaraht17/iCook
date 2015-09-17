@@ -1,0 +1,32 @@
+<android.support.v4.widget.DrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawer_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <RelativeLayout
+        android:background="#fff"
+        android:id="@+id/main"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent">
+
+        <RelativeLayout
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_below="@+id/include"
+            android:layout_marginBottom="50dp"
+            android:layout_alignParentBottom="true"
+            android:id="@+id/contents">
+            <include
+                layout="@layout/grid_view"/>
+        </RelativeLayout>
+        <include
+            layout="@layout/actionbar"
+            android:layout_height="60dp"
+            android:layout_width="fill_parent"
+            android:id="@+id/include" />
+        <include
+            layout="@layout/bottom_actionbar"
+            android:id="@+id/" />
+</RelativeLayout>
+</android.support.v4.widget.DrawerLayout>
