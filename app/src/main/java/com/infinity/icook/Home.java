@@ -38,6 +38,7 @@ public class Home extends Activity implements View.OnClickListener {
     private ArrayList<Cat_Item> items = new ArrayList<Cat_Item>();
     CategoryDetails catdetails;
     ChatFragment chatview;
+    // tao cai enum mode de co cac kieu che do o man hinh chinh, Talk la o mode noi chuyen voi con AI, con browse la mode xem Category, details la xem ben trong category
     private enum Mode {
         TALK, BROWSE, DETAILS
     }
@@ -47,34 +48,43 @@ public class Home extends Activity implements View.OnClickListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
-        chatview = new ChatFragment();
 
-        barbtn = (Button) findViewById(R.id.barbtn);
-        chatBar = findViewById(R.id.chatBar);
-        barid = R.string.icon_toggle;
-        font_awesome = Typeface.createFromAsset( getAssets(), "fontawesome-webfont.ttf" );
-        font_tony = Typeface.createFromAsset(this.getAssets(), "uvf-slimtony.ttf");
-
-        barbtn.setTypeface(font_awesome);
-        mode = Mode.BROWSE;
         Display display = getWindowManager().getDefaultDisplay();
         screenWidth =  display.getWidth();
         screenHeight = display.getHeight();
+        //khai bao font de dung thoi
+        font_awesome = Typeface.createFromAsset( getAssets(), "fontawesome-webfont.ttf" );
+        font_tony = Typeface.createFromAsset(this.getAssets(), "uvf-slimtony.ttf");
+        //thiet lap cai thanh menu o bottom
+        NavTitle = (TextView) findViewById(R.id.NavTitle);
+        iCookBtnText = (TextView) findViewById(R.id.icookbtn);
+        iCookBtnLayout = findViewById(R.id.icookbtnlayout);
+        NavTitle.setTypeface(font_tony);
+        iCookBtnText.setTypeface(font_tony);
+
+        // khai bao fragment cho phan chat
+        chatview = new ChatFragment();
+        // setup
+
+        barbtn = (Button) findViewById(R.id.barbtn); // button toggle de mo nav drawer
+        chatBar = findViewById(R.id.chatBar); //khung chat de push len luc can hoi con bot
+        barid = R.string.icon_toggle; // cha co gi dau icon cai toggle thoi
+        barbtn.setTypeface(font_awesome);
+
+        // khoi tao la vao mode browse, xem category
+        mode = Mode.BROWSE;
+
         int cat_size = (screenWidth-80)/2;
         fragmentManager = getFragmentManager();
 
+        // add item vao list category
         items.add(new Cat_Item(R.drawable.cat_cake,"Cake"));
         items.add(new Cat_Item(R.drawable.cat_egg,"Egg"));
         items.add(new Cat_Item(R.drawable.cat_fish,"Fish"));
         items.add(new Cat_Item(R.drawable.cat_meat,"Meat"));
         items.add(new Cat_Item(R.drawable.cat_soup,"Soup"));
         items.add(new Cat_Item(R.drawable.cat_vegetable,"Vegetable"));
-
-        NavTitle = (TextView) findViewById(R.id.NavTitle);
-        iCookBtnText = (TextView) findViewById(R.id.icookbtn);
-        iCookBtnLayout = findViewById(R.id.icookbtnlayout);
-        NavTitle.setTypeface(font_tony);
-        iCookBtnText.setTypeface(font_tony);
+        // setup gridview
         GridView gridview = (GridView) this.findViewById(R.id.gridview);
         gridview.setAdapter(new ImageAdapter(this,cat_size, items));
         gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -86,7 +96,7 @@ public class Home extends Activity implements View.OnClickListener {
         barbtn.setOnClickListener(this);
         iCookBtnLayout.setOnClickListener(this);
     }
-
+    // ham mo 1 category
     public void OpenDetails(Cat_Item item) {
         catdetails = new CategoryDetails(item.name);
         FragmentTransaction fragmentTransaction;
@@ -100,20 +110,19 @@ public class Home extends Activity implements View.OnClickListener {
         fragmentTransaction.replace(R.id.contents, catdetails);
         fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
-
+        // chuyen mod
         mode=Mode.DETAILS;
     }
-
+    // ham dong category
     private void CloseDetails(){
         fragmentManager.popBackStack();
-
         fragmentTransaction = null;
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()){
-            case R.id.icookbtnlayout: {
+            case R.id.icookbtnlayout: { // action khi bam vao nut icook o giua thanh menu bottom
                 switch (mode) {
                     case BROWSE:
                         mode = Mode.TALK;
@@ -127,16 +136,17 @@ public class Home extends Activity implements View.OnClickListener {
             }
             case R.id.barbtn: {
                 switch (barid) {
-                    case R.string.icon_back:
+                    case R.string.icon_back: // action khi bam vao nut back khi dang xem chi tiet category, binh thuong app bi loi khi bam nut back la do no ko chay nhung ham o trong nay
                     {
                         switch (mode) {
-                            case TALK:
-                                mode = Mode.BROWSE;
+                            case TALK: // truong hop bam nut back khi dang o fragment chat voi bot
+                                mode = Mode.BROWSE; // set mode = browse roi chay ham switchMode() de tro ve mode browse
                                 CloseDetails();
                                 break;
-                            case DETAILS:
+                            case DETAILS:  // truong hop bam nut back khi dang o fragment xem category
                                 break;
                         }
+                        //setup lai man hinh chinh
                         barid = R.string.icon_toggle;
                         barbtn.setText(R.string.icon_toggle);
                         this.NavTitle.setText(R.string.category);
@@ -156,9 +166,10 @@ public class Home extends Activity implements View.OnClickListener {
     private int switchButtonposition(){
         return screenWidth/2 - iCookBtnLayout.getWidth()/4;
     }
+    // ham chay khi chuyen qua lai cac mode
     private void switchMode(){
         switch (mode) {
-            case BROWSE:
+            case BROWSE: // tro ve mode browse tu cac mode khac
                 Log.d("Value", "Switch to browse");
                 iCookBtnLayout.animate().translationX(0).setInterpolator(new AccelerateDecelerateInterpolator());
                 iCookBtnText.setTypeface(font_tony);
@@ -166,7 +177,7 @@ public class Home extends Activity implements View.OnClickListener {
                 iCookBtnText.setTextSize(20);
                 chatBar.animate().translationY(0).setInterpolator(new AccelerateDecelerateInterpolator());
                 break;
-            case TALK:
+            case TALK: // chuyen sang mode chat voi bot
                 this.NavTitle.setText(R.string.assist_title);
                 this.barbtn.setText(R.string.icon_back);
                 barid = R.string.icon_back;
@@ -175,14 +186,13 @@ public class Home extends Activity implements View.OnClickListener {
                 iCookBtnText.setTypeface(font_awesome);
                 iCookBtnText.setText(R.string.icon_microphone);
                 iCookBtnText.setTextSize(50);
-
                 fragmentTransaction = fragmentManager.beginTransaction();
                 fragmentTransaction.setCustomAnimations(R.anim.slide_in,R.anim.slide_out);
                 fragmentTransaction.replace(R.id.contents, chatview);
                 fragmentTransaction.addToBackStack(null);
                 fragmentTransaction.commit();
                 break;
-            case DETAILS:
+            case DETAILS: // tro ve mode details khi dang xem details
                 mode = Mode.BROWSE;
                 CloseDetails();
                 break;

@@ -17,6 +17,7 @@ public class CategoryDetails extends Fragment{
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.cat_details, container, false);
+        //set lai title khi dang xem category thoi
         Title = (TextView) view.findViewById(R.id.textView);
         Title.setText(title);
 
