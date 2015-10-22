@@ -1,92 +1,138 @@
 package com.infinity.icook;
 
-import android.animation.Animator;
-import android.animation.ObjectAnimator;
-import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.Typeface;
+import android.media.MediaPlayer;
 import android.os.Bundle;
-import android.os.Debug;
+import android.speech.RecognizerIntent;
+import android.support.v4.widget.DrawerLayout;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.Display;
+import android.view.Gravity;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
-import android.view.animation.LinearInterpolator;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.GridView;
-import android.widget.RelativeLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.infinity.adapter.CustomDrawerAdapter;
+import com.infinity.adapter.ImageAdapter;
+import com.infinity.fragment.CategoryDetails;
+import com.infinity.fragment.ChatFragment;
+import com.infinity.model.CatItem;
+import com.infinity.model.DrawerItem;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 
 public class Home extends Activity implements View.OnClickListener {
+    private static final int REQUEST_CODE = 1234;
 
     private TextView NavTitle, iCookBtnText;
     private View iCookBtnLayout, chatBar;
-    private int screenWidth,screenHeight;
-
-    FragmentTransaction fragmentTransaction;
+    private EditText chatText;
+    private TextView btnSend;
     private Button barbtn;
-    private int barid;
-    Typeface font_awesome,font_tony;
+    Typeface font_awesome, font_tony;
+
+    //fragment
+    FragmentTransaction fragmentTransaction;
     FragmentManager fragmentManager;
-    private ArrayList<Cat_Item> items = new ArrayList<Cat_Item>();
     CategoryDetails catdetails;
     ChatFragment chatview;
-    // tao cai enum mode de co cac kieu che do o man hinh chinh, Talk la o mode noi chuyen voi con AI, con browse la mode xem Category, details la xem ben trong category
+
+    //drawer
+    private DrawerLayout mDrawerLayout;
+    private ListView mDrawerList;
+    private CustomDrawerAdapter drawerAdapter;
+    private List<DrawerItem> drawerDataList;
+
+
+    private int barid;
+    private int screenWidth, screenHeight;
+
+    private ArrayList<CatItem> items = new ArrayList<CatItem>();
+
+    // tao enum mode cac kieu che do o man hinh chinh, Talk : noi chuyen voi AI, Browse : xem Category, Details :xem ben trong category
     private enum Mode {
         TALK, BROWSE, DETAILS
     }
 
     Mode mode;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        Display display = getWindowManager().getDefaultDisplay();
-        screenWidth =  display.getWidth();
-        screenHeight = display.getHeight();
-        //khai bao font de dung thoi
-        font_awesome = Typeface.createFromAsset( getAssets(), "fontawesome-webfont.ttf" );
+        DisplayMetrics displaymetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
+        screenHeight = displaymetrics.heightPixels;
+        screenWidth = displaymetrics.widthPixels;
+
+        //khai bao font
+        font_awesome = Typeface.createFromAsset(getAssets(), "fontawesome-webfont.ttf");
         font_tony = Typeface.createFromAsset(this.getAssets(), "uvf-slimtony.ttf");
-        //thiet lap cai thanh menu o bottom
+
+        //thiet lap thanh menu o bottom
         NavTitle = (TextView) findViewById(R.id.NavTitle);
         iCookBtnText = (TextView) findViewById(R.id.icookbtn);
         iCookBtnLayout = findViewById(R.id.icookbtnlayout);
+        btnSend = (TextView) findViewById(R.id.btnSend);
+        chatText = (EditText) findViewById(R.id.chatText);
+
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mDrawerList = (ListView) findViewById(R.id.left_drawer);
+        drawerDataList = initDrawerData();
+        mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
+        drawerAdapter = new CustomDrawerAdapter(getApplicationContext(), R.layout.custom_drawer_item,
+                drawerDataList);
+        mDrawerList.setAdapter(drawerAdapter);
+
         NavTitle.setTypeface(font_tony);
         iCookBtnText.setTypeface(font_tony);
+        btnSend.setTypeface(font_awesome);
 
         // khai bao fragment cho phan chat
         chatview = new ChatFragment();
         // setup
-
         barbtn = (Button) findViewById(R.id.barbtn); // button toggle de mo nav drawer
         chatBar = findViewById(R.id.chatBar); //khung chat de push len luc can hoi con bot
-        barid = R.string.icon_toggle; // cha co gi dau icon cai toggle thoi
+        barid = R.string.icon_toggle; //
         barbtn.setTypeface(font_awesome);
 
         // khoi tao la vao mode browse, xem category
         mode = Mode.BROWSE;
 
-        int cat_size = (screenWidth-80)/2;
+        int cat_size = (screenWidth - 80) / 2;
         fragmentManager = getFragmentManager();
 
         // add item vao list category
-        items.add(new Cat_Item(R.drawable.cat_cake,"Cake"));
-        items.add(new Cat_Item(R.drawable.cat_egg,"Egg"));
-        items.add(new Cat_Item(R.drawable.cat_fish,"Fish"));
-        items.add(new Cat_Item(R.drawable.cat_meat,"Meat"));
-        items.add(new Cat_Item(R.drawable.cat_soup,"Soup"));
-        items.add(new Cat_Item(R.drawable.cat_vegetable,"Vegetable"));
+        addItemToCategoryList();
+
         // setup gridview
         GridView gridview = (GridView) this.findViewById(R.id.gridview);
-        gridview.setAdapter(new ImageAdapter(this,cat_size, items));
+        gridview.setAdapter(new ImageAdapter(this, cat_size, items));
         gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v,
                                     int position, long id) {
@@ -95,40 +141,87 @@ public class Home extends Activity implements View.OnClickListener {
         });
         barbtn.setOnClickListener(this);
         iCookBtnLayout.setOnClickListener(this);
+        btnSend.setOnClickListener(this);
+    }
+
+    private void addItemToCategoryList() {
+        items.add(new CatItem(R.drawable.cat_cake, "Cake"));
+        items.add(new CatItem(R.drawable.cat_egg, "Egg"));
+        items.add(new CatItem(R.drawable.cat_fish, "Fish"));
+        items.add(new CatItem(R.drawable.cat_meat, "Meat"));
+        items.add(new CatItem(R.drawable.cat_soup, "Soup"));
+        items.add(new CatItem(R.drawable.cat_vegetable, "Vegetable"));
     }
     // ham mo 1 category
-    public void OpenDetails(Cat_Item item) {
-        catdetails = new CategoryDetails(item.name);
+    public void OpenDetails(CatItem item) {
+        catdetails = new CategoryDetails(item.getName());
         FragmentTransaction fragmentTransaction;
         barid = R.string.icon_back;
         fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.setCustomAnimations(R.anim.slide_in,R.anim.slide_out);
+        fragmentTransaction.setCustomAnimations(R.anim.slide_in, R.anim.slide_out);
 
-        this.NavTitle.setText(item.name);
+        this.NavTitle.setText(item.getName());
         this.barbtn.setText(R.string.icon_back);
+
 
         fragmentTransaction.replace(R.id.contents, catdetails);
         fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
         // chuyen mod
-        mode=Mode.DETAILS;
+        mode = Mode.DETAILS;
     }
+
     // ham dong category
-    private void CloseDetails(){
+    private void CloseDetails() {
         fragmentManager.popBackStack();
         fragmentTransaction = null;
     }
 
+    private ArrayList initDrawerData() {
+        ArrayList list = new ArrayList();
+        list.add(new DrawerItem("Hoàng Tiến", "Đẹp Trai", R.drawable.ava));
+        list.add(new DrawerItem("Chỉnh sửa thông tin", R.string.user_icon));
+        list.add(new DrawerItem("Thông báo mới", R.string.notif_icon));
+        list.add(new DrawerItem("Cài đặt", R.string.settings_icon));
+        list.add(new DrawerItem("Đăng xuất", R.string.logout_icon));
+        return list;
+    }
+
+    //xu ly su kien cho drawer
+    private class DrawerItemClickListener implements ListView.OnItemClickListener {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            Intent intent;
+            switch (position) {
+                case 0:
+
+                    break;
+                case 1:
+
+                    break;
+                case 2:
+
+                    break;
+                case 3:
+
+                    break;
+                case 4:
+                    break;
+            }
+
+        }
+    }
+
     @Override
     public void onClick(View v) {
-        switch (v.getId()){
+        switch (v.getId()) {
             case R.id.icookbtnlayout: { // action khi bam vao nut icook o giua thanh menu bottom
                 switch (mode) {
                     case BROWSE:
                         mode = Mode.TALK;
                         break;
                     case TALK:
-
+                        startVoiceRecognitionActivity();
                         break;
                 }
                 switchMode();
@@ -153,21 +246,36 @@ public class Home extends Activity implements View.OnClickListener {
                         switchMode();
                         break;
                     }
-                    case R.string.icon_toggle:
-                    {
+                    case R.string.icon_toggle: {
+                        mDrawerLayout.openDrawer(Gravity.LEFT);
                         break;
                     }
                 }
             }
+            case R.id.btnSend:
+                chatview.sendChatMessage(chatText.getText().toString());
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        String s = chatText.getText().toString();
+                        if (!s.equals("")) {
+                            speakTTS(s);
+                        }
+                    }
+                }).start();
+                chatText.setText("");
+                break;
             default:
                 break;
         }
     }
-    private int switchButtonposition(){
-        return screenWidth/2 - iCookBtnLayout.getWidth()/4;
+
+    private int switchButtonposition() {
+        return screenWidth / 2 - iCookBtnLayout.getWidth() / 4;
     }
+
     // ham chay khi chuyen qua lai cac mode
-    private void switchMode(){
+    private void switchMode() {
         switch (mode) {
             case BROWSE: // tro ve mode browse tu cac mode khac
                 Log.d("Value", "Switch to browse");
@@ -186,8 +294,29 @@ public class Home extends Activity implements View.OnClickListener {
                 iCookBtnText.setTypeface(font_awesome);
                 iCookBtnText.setText(R.string.icon_microphone);
                 iCookBtnText.setTextSize(50);
+
+                chatText.addTextChangedListener(new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                    }
+
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable s) {
+                        String text = s.toString().toLowerCase(Locale.getDefault());
+                        if (text.equals("")) {
+                            btnSend.setTextColor(Color.parseColor("#FFFFFF"));
+                        } else {
+                            btnSend.setTextColor(Color.parseColor("#747474"));
+                        }
+                    }
+                });
+
                 fragmentTransaction = fragmentManager.beginTransaction();
-                fragmentTransaction.setCustomAnimations(R.anim.slide_in,R.anim.slide_out);
+                fragmentTransaction.setCustomAnimations(R.anim.slide_in, R.anim.slide_out);
                 fragmentTransaction.replace(R.id.contents, chatview);
                 fragmentTransaction.addToBackStack(null);
                 fragmentTransaction.commit();
@@ -196,6 +325,127 @@ public class Home extends Activity implements View.OnClickListener {
                 mode = Mode.BROWSE;
                 CloseDetails();
                 break;
+        }
+    }
+
+    //mo google voice
+    private void startVoiceRecognitionActivity() {
+        try {
+            Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                    RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE,
+                    Locale.getDefault());
+            intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Bạn cần tư vấn....");
+            startActivityForResult(intent, REQUEST_CODE);
+        } catch (Exception e) {
+            Toast.makeText(this,
+                    "Điện thoại của bạn không hỗ trợ Google Voice", Toast.LENGTH_SHORT)
+                    .show();
+        }
+    }
+
+    /**
+     * Handle the results from the voice recognition activity.
+     */
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            // Populate the wordsList with the String values the recognition
+            // engine thought it heard
+            final ArrayList<String> matches = data
+                    .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+            if (matches.size() != 0) {
+                chatview.sendChatMessage(matches.get(0));
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        String s = matches.get(0);
+                        if (!s.equals("")) {
+                            speakTTS(s);
+                        }
+                    }
+                }).start();
+                chatText.setText("");
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    public void stopSpeakVi() {
+        mediaPlayer.stop();
+    }
+
+    private String TAG = "SMAC 2015 TTS";
+    private String mHost = "http://118.69.135.22";
+
+    //tai file wav tu host va phat am
+    @SuppressWarnings("deprecation")
+    public void speakTTS(String msg) {
+        String URL = mHost + "/synthesis/file?voiceType=female&text=" + URLEncoder.encode(msg);
+        downloadFile(URL, "sdcard/sound.wav");
+    }
+
+    //phat am
+    public void speakVi(final String filePath) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                initMediaPlayer(filePath);
+                mediaPlayer.start();
+            }
+        });
+    }
+
+    public void downloadFile(final String URL, final String filePath) {
+        try {
+            java.net.URL url = new URL(URL);
+            Log.e(TAG, "Download URL: " + url.toString());
+            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+            urlConnection.setRequestMethod("GET");
+            urlConnection.setRequestProperty("accept-charset", "UTF-8");
+            urlConnection.setRequestProperty("content-type", "application/x-www-form-urlencoded; charset=utf-8");
+            urlConnection.setDoOutput(true);
+            urlConnection.connect();
+            InputStream inputStream = urlConnection.getInputStream();
+            final File file = new File(filePath);
+            FileOutputStream fileOutput = new FileOutputStream(file);
+            byte[] buffer = new byte[1024];
+            int bufferLength = 0;
+            while ((bufferLength = inputStream.read(buffer)) > 0) {
+                fileOutput.write(buffer, 0, bufferLength);
+            }
+            speakVi(file.getAbsolutePath());
+            fileOutput.close();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public int stateMediaPlayer;
+    public final int stateMP_Error = 0;
+    public final int stateMP_NotStarter = 1;
+    public MediaPlayer mediaPlayer;
+
+    public void initMediaPlayer(String path) {
+        String PATH_TO_FILE = path;
+        mediaPlayer = new MediaPlayer();
+        try {
+            mediaPlayer.setDataSource(PATH_TO_FILE);
+            mediaPlayer.prepare();
+            stateMediaPlayer = stateMP_NotStarter;
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+            stateMediaPlayer = stateMP_Error;
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+            stateMediaPlayer = stateMP_Error;
+        } catch (IOException e) {
+            e.printStackTrace();
+            stateMediaPlayer = stateMP_Error;
         }
     }
 

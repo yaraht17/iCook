@@ -1,4 +1,4 @@
-package com.infinity.icook;
+package com.infinity.adapter;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -16,19 +16,22 @@ import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.infinity.icook.R;
+import com.infinity.model.CatItem;
+
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 /**
- * Created by mac on 9/10/15.
+ * Created by Admin on 10/19/2015.
  */
-class ImageAdapter extends BaseAdapter {
+public class ImageAdapter extends BaseAdapter {
     private Context mContext;
-    private ArrayList<Cat_Item> items;
+    private ArrayList<CatItem> items;
     private LruCache<String, Bitmap> mMemoryCache;
     int size;
 
-    public ImageAdapter(Context c, int size, ArrayList<Cat_Item> items) {
+    public ImageAdapter(Context c, int size, ArrayList<CatItem> items) {
         mContext = c;
         this.size = size;
         this.items = items;
@@ -65,7 +68,7 @@ class ImageAdapter extends BaseAdapter {
 
     // create a new ImageView for each item referenced by the Adapter
     public View getView(int position, View convertView, ViewGroup parent) {
-        Cat_Item item = items.get(position);
+        CatItem item = items.get(position);
         View view;
         if (convertView == null) {
             view = LayoutInflater.from(mContext).inflate(
@@ -76,38 +79,38 @@ class ImageAdapter extends BaseAdapter {
         }
         TextView textView = (TextView) view.findViewById(R.id.detail_text);
         ImageView imageView = (ImageView) view.findViewById(R.id.detail_img);
-        loadBitmap(item.id,imageView);
-//        imageView.setImageResource(item.id);
-        textView.setText(item.name);
+//        loadBitmap(item.id,imageView);
+        imageView.setImageResource(item.getId());
+        textView.setText(item.getName());
 
         return view;
     }
 
     public void loadBitmap(int resId, ImageView imageView) {
         if (cancelPotentialWork(resId, imageView)) {
-            final BitmapWorkerTask task = new BitmapWorkerTask(imageView);
+            final ImageAdapter.BitmapWorkerTask task = new ImageAdapter.BitmapWorkerTask(imageView);
             imageView.setBackgroundResource(R.drawable.empty_photo);
             task.execute(resId);
         }
     }
 
     static class AsyncDrawable extends BitmapDrawable {
-        private final WeakReference<BitmapWorkerTask> bitmapWorkerTaskReference;
+        private final WeakReference<ImageAdapter.BitmapWorkerTask> bitmapWorkerTaskReference;
 
         public AsyncDrawable(Resources res, Bitmap bitmap,
-                             BitmapWorkerTask bitmapWorkerTask) {
+                             ImageAdapter.BitmapWorkerTask bitmapWorkerTask) {
             super(res, bitmap);
-            bitmapWorkerTaskReference = new WeakReference<BitmapWorkerTask>(
+            bitmapWorkerTaskReference = new WeakReference<ImageAdapter.BitmapWorkerTask>(
                     bitmapWorkerTask);
         }
 
-        public BitmapWorkerTask getBitmapWorkerTask() {
+        public ImageAdapter.BitmapWorkerTask getBitmapWorkerTask() {
             return bitmapWorkerTaskReference.get();
         }
     }
 
     public static boolean cancelPotentialWork(int data, ImageView imageView) {
-        final BitmapWorkerTask bitmapWorkerTask = getBitmapWorkerTask(imageView);
+        final ImageAdapter.BitmapWorkerTask bitmapWorkerTask = getBitmapWorkerTask(imageView);
 
         if (bitmapWorkerTask != null) {
             final int bitmapData = bitmapWorkerTask.data;
@@ -124,11 +127,11 @@ class ImageAdapter extends BaseAdapter {
         return true;
     }
 
-    private static BitmapWorkerTask getBitmapWorkerTask(ImageView imageView) {
+    private static ImageAdapter.BitmapWorkerTask getBitmapWorkerTask(ImageView imageView) {
         if (imageView != null) {
             final Drawable drawable = imageView.getDrawable();
-            if (drawable instanceof AsyncDrawable) {
-                final AsyncDrawable asyncDrawable = (AsyncDrawable) drawable;
+            if (drawable instanceof ImageAdapter.AsyncDrawable) {
+                final ImageAdapter.AsyncDrawable asyncDrawable = (ImageAdapter.AsyncDrawable) drawable;
                 return asyncDrawable.getBitmapWorkerTask();
             }
         }
@@ -219,15 +222,5 @@ class ImageAdapter extends BaseAdapter {
         return inSampleSize;
 
 
-    }
-}
-
-class Cat_Item {
-    int id;
-    String name;
-
-    public Cat_Item(int id, String name) {
-        this.id = id;
-        this.name = name;
     }
 }

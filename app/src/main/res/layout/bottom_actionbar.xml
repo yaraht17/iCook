@@ -1,59 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
     <RelativeLayout
         android:id="@+id/toolbar"
-        android:clickable="true"
         android:layout_width="fill_parent"
         android:layout_height="50dp"
-        android:background="@color/title"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true">
-        </RelativeLayout>
+        android:layout_alignParentStart="true"
+        android:background="@color/title"
+        android:clickable="true" />
 
-    <RelativeLayout
+    <LinearLayout
         android:id="@+id/chatBar"
-        android:clickable="true"
         android:layout_width="fill_parent"
         android:layout_height="50dp"
+        android:layout_alignParentBottom="true"
         android:layout_marginBottom="-50dp"
         android:background="@color/title"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true">
-        <EditText
-            android:layout_width="fill_parent"
-            android:layout_height="35dp"
-            android:background="#fff"
-            android:id="@+id/editText"
-            android:layout_centerVertical="true"
-            android:layout_marginLeft="80dp"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"
-            android:layout_marginRight="10dp" />
-    </RelativeLayout>
+        android:clickable="true"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_margin="5dp"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:padding="3dp">
+
+            <EditText
+                android:id="@+id/chatText"
+                android:layout_width="fill_parent"
+                android:layout_height="0dp"
+                android:layout_marginLeft="80dp"
+                android:layout_weight="1"
+                android:background="@drawable/square"
+                android:padding="5dp" />
+        </LinearLayout>
+
+
+        <TextView
+            android:id="@+id/btnSend"
+            android:layout_width="40dp"
+            android:layout_height="fill_parent"
+            android:layout_marginRight="5dp"
+            android:gravity="center"
+            android:text="@string/send_icon"
+            android:textColor="#FFF"
+            android:textSize="20dp"
+            android:visibility="visible" />
+    </LinearLayout>
 
     <RelativeLayout
         android:id="@+id/icookbtnlayout"
         android:layout_width="100dp"
         android:layout_height="100dp"
-        android:background="@drawable/icookbtn"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="-30dp">
+        android:layout_marginBottom="-30dp"
+        android:background="@drawable/icookbtn">
 
         <TextView
+            android:id="@+id/icookbtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/app_name"
-            android:textSize="20dp"
-            android:textColor="#fff"
-            android:id="@+id/icookbtn"
+            android:layout_centerHorizontal="true"
             android:layout_marginTop="20dp"
-            android:layout_centerHorizontal="true" />
+            android:text="@string/app_name"
+            android:textColor="#fff"
+            android:textSize="20dp" />
 
 
     </RelativeLayout>
