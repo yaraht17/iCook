@@ -3,6 +3,7 @@ package com.infinity.icook;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -17,6 +18,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
@@ -31,6 +33,7 @@ import com.infinity.fragment.CategoryDetails;
 import com.infinity.fragment.ChatFragment;
 import com.infinity.model.CatItem;
 import com.infinity.model.DrawerItem;
+import com.infinity.service.ClockService;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -180,9 +183,8 @@ public class Home extends Activity implements View.OnClickListener {
     private ArrayList initDrawerData() {
         ArrayList list = new ArrayList();
         list.add(new DrawerItem("Hoàng Tiến", "Đẹp Trai", R.drawable.ava));
-        list.add(new DrawerItem("Chỉnh sửa thông tin", R.string.user_icon));
-        list.add(new DrawerItem("Thông báo mới", R.string.notif_icon));
-        list.add(new DrawerItem("Cài đặt", R.string.settings_icon));
+        list.add(new DrawerItem("Thông tin gia đình", R.string.users));
+        list.add(new DrawerItem("Báo thức", R.string.settings_icon));
         list.add(new DrawerItem("Đăng xuất", R.string.logout_icon));
         return list;
     }
@@ -194,10 +196,11 @@ public class Home extends Activity implements View.OnClickListener {
             Intent intent;
             switch (position) {
                 case 0:
-
                     break;
                 case 1:
-
+                    intent = new Intent(getApplicationContext(), ManagerUser.class);
+                    mDrawerLayout.closeDrawer(Gravity.LEFT);
+                    startActivity(intent);
                     break;
                 case 2:
 
@@ -205,7 +208,7 @@ public class Home extends Activity implements View.OnClickListener {
                 case 3:
 
                     break;
-                case 4:
+                default:
                     break;
             }
 
@@ -294,7 +297,23 @@ public class Home extends Activity implements View.OnClickListener {
                 iCookBtnText.setTypeface(font_awesome);
                 iCookBtnText.setText(R.string.icon_microphone);
                 iCookBtnText.setTextSize(50);
+                chatText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
 
+                    public void onFocusChange(View v, boolean hasFocus) {
+                        if (!hasFocus) {
+                            hideKeyboard();
+                        }
+                    }
+
+                    private void hideKeyboard() {
+                        if (chatText != null) {
+                            InputMethodManager imanager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                            imanager.hideSoftInputFromWindow(chatText.getWindowToken(), 0);
+
+                        }
+
+                    }
+                });
                 chatText.addTextChangedListener(new TextWatcher() {
                     @Override
                     public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -310,7 +329,7 @@ public class Home extends Activity implements View.OnClickListener {
                         if (text.equals("")) {
                             btnSend.setTextColor(Color.parseColor("#FFFFFF"));
                         } else {
-                            btnSend.setTextColor(Color.parseColor("#747474"));
+                            btnSend.setTextColor(Color.parseColor("#00AFF0"));
                         }
                     }
                 });
@@ -449,4 +468,49 @@ public class Home extends Activity implements View.OnClickListener {
         }
     }
 
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+
+        switch (barid) {
+            case R.string.icon_back: {
+                switch (mode) {
+                    case TALK:
+                        mode = Mode.BROWSE;
+                        CloseDetails();
+                        break;
+                    case DETAILS:
+                        break;
+                }
+                barid = R.string.icon_toggle;
+                barbtn.setText(R.string.icon_toggle);
+                this.NavTitle.setText(R.string.category);
+                switchMode();
+                break;
+            }
+        }
+//        if (fragmentManager == null) {
+//            Toast.makeText(getApplicationContext(), "Press agian", Toast.LENGTH_SHORT).show();
+//        }
+    }
+
+    private int time;
+
+    public void startService(String tmp) {
+        if (tmp.equals("")) {
+            Toast.makeText(this, "set Time again !", Toast.LENGTH_SHORT).show();
+        } else {
+            time = Integer.parseInt(tmp);
+            Intent intent = (new Intent(getBaseContext(), ClockService.class));
+            intent.putExtra("time", time);
+            stopService(intent);
+            startService(intent);
+        }
+
+    }
+
+    public void stopService() {
+        Intent intent = (new Intent(getBaseContext(), ClockService.class));
+        stopService(intent);
+    }
 }

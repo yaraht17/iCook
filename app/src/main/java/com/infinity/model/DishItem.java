@@ -1,6 +1,8 @@
 package com.infinity.model;
 
-public class DishItem {
+import java.io.Serializable;
+
+public class DishItem implements Serializable {
     private int id;
     private String name;
     private String avatar;

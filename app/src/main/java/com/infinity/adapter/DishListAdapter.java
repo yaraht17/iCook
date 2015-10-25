@@ -5,11 +5,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.android.volley.toolbox.ImageLoader;
+import com.android.volley.toolbox.NetworkImageView;
 import com.infinity.icook.R;
 import com.infinity.model.DishItem;
+import com.infinity.volley.MySingleton;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,26 +23,27 @@ public class DishListAdapter extends ArrayAdapter<DishItem> {
     private int resource;
     private ViewHolder viewHolder;
     private LayoutInflater inflater;
-    private List<DishItem> sickList = new ArrayList<DishItem>();
+    private List<DishItem> dishList = new ArrayList<DishItem>();
     private List<DishItem> worldpopulationlist = new ArrayList<DishItem>();
-
+    private ImageLoader imageLoader;
     public DishListAdapter(Context context, int resource,
                            ArrayList<DishItem> sickItems) {
         super(context, resource, sickItems);
         this.context = context;
         this.resource = resource;
-        this.sickList = sickItems;
+        this.dishList = sickItems;
         worldpopulationlist.addAll(sickItems);
+        imageLoader = MySingleton.getInstance(context).getImageLoader();
 
     }
 
 
     public List<DishItem> getDishList() {
-        return sickList;
+        return dishList;
     }
 
-    public void setDishList(List<DishItem> sickList) {
-        this.sickList = sickList;
+    public void setDishList(List<DishItem> dishList) {
+        this.dishList = dishList;
     }
 
     @Override
@@ -65,17 +68,20 @@ public class DishListAdapter extends ArrayAdapter<DishItem> {
         if (row == null) {
             inflater = (LayoutInflater) this.getContext().getSystemService(
                     Context.LAYOUT_INFLATER_SERVICE);
+            if (imageLoader == null)
+                imageLoader = MySingleton.getInstance(context).getImageLoader();
             row = inflater.inflate(R.layout.item_dish, parent, false);
-            viewHolder.sickName = (TextView) row
-                    .findViewById(R.id.txt_sick_name);
-            viewHolder.img = (ImageView) row.findViewById(R.id.img_sick_avatar);
+            viewHolder.dishName = (TextView) row
+                    .findViewById(R.id.txt_dish_name);
+            viewHolder.img = (NetworkImageView) row.findViewById(R.id.img_dish_avatar);
             viewHolder.des = (TextView) row.findViewById(R.id.txtDescription);
             row.setTag(viewHolder);
         } else {
             viewHolder = (ViewHolder) row.getTag();
         }
-        viewHolder.sickName.setText(item.getName());
-        viewHolder.img.setImageResource(R.drawable.cat_cake);
+        viewHolder.dishName.setText(item.getName());
+//        viewHolder.img.setImageResource(R.drawable.cat_cake);
+        viewHolder.img.setImageUrl(item.getAvatar(), imageLoader);
         viewHolder.des.setText(item.getDescription());
         return row;
     }
@@ -84,9 +90,9 @@ public class DishListAdapter extends ArrayAdapter<DishItem> {
         charText = charText.toLowerCase(Locale.getDefault());
         worldpopulationlist.clear();
         if (charText.length() == 0) {
-            worldpopulationlist.addAll(sickList);
+            worldpopulationlist.addAll(dishList);
         } else {
-            for (DishItem wp : sickList) {
+            for (DishItem wp : dishList) {
                 if (wp.getName().toLowerCase(Locale.getDefault()).contains(
                         charText)) {
                     worldpopulationlist.add(wp);
@@ -97,8 +103,8 @@ public class DishListAdapter extends ArrayAdapter<DishItem> {
     }
 
     private class ViewHolder {
-        TextView sickName;
-        ImageView img;
+        TextView dishName;
+        NetworkImageView img;
         TextView des;
     }
 

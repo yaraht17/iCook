@@ -1,15 +1,14 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    >
+    android:orientation="vertical">
 
     <RelativeLayout
         android:id="@+id/container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:padding="20dp"
+        android:padding="10dp"
         android:background="@color/title"
         android:alpha="0.8">
 
@@ -23,8 +22,9 @@
             android:layout_marginTop="10dp"
             android:listSelector="@android:color/transparent"
             android:transcriptMode="alwaysScroll"
+            android:stackFromBottom="true"
             android:divider="@null"
             />
 
     </RelativeLayout>
-</LinearLayout>
+</RelativeLayout>

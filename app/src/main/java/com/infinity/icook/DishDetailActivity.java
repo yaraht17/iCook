@@ -1,28 +1,38 @@
 package com.infinity.icook;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.infinity.data.Var;
+import com.infinity.model.DishItem;
 
 public class DishDetailActivity extends AppCompatActivity {
-    public static final String EXTRA_NAME = "iCook";
 
+    private DishItem dish;
+    private TextView title, description;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dish_detail);
+
+        dish = (DishItem) getIntent().getSerializableExtra(Var.DISH_EXTRA);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        Intent intent = getIntent();
-        final String dishName = intent.getStringExtra(EXTRA_NAME);
+
+        title = (TextView) findViewById(R.id.title);
+        description = (TextView) findViewById(R.id.description);
+
+        title.setText(dish.getName());
+        description.setText(dish.getDescription());
+
         CollapsingToolbarLayout collapsingToolbar = (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
-        collapsingToolbar.setTitle(dishName);
+        collapsingToolbar.setTitle(dish.getName());
 
         loadBackdrop();
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -30,6 +40,6 @@ public class DishDetailActivity extends AppCompatActivity {
 
     private void loadBackdrop() {
         final ImageView imageView = (ImageView) findViewById(R.id.backdrop);
-        Glide.with(this).load(R.drawable.cat_cake).centerCrop().into(imageView);
+        Glide.with(this).load(dish.getAvatar()).centerCrop().into(imageView);
     }
 }
