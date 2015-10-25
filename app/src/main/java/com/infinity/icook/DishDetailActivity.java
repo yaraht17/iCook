@@ -29,7 +29,7 @@ public class DishDetailActivity extends AppCompatActivity {
         description = (TextView) findViewById(R.id.description);
 
         title.setText(dish.getName());
-        description.setText(dish.getDescription());
+        description.setText(dish.getIntroduce());
 
         CollapsingToolbarLayout collapsingToolbar = (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
         collapsingToolbar.setTitle(dish.getName());
@@ -40,6 +40,6 @@ public class DishDetailActivity extends AppCompatActivity {
 
     private void loadBackdrop() {
         final ImageView imageView = (ImageView) findViewById(R.id.backdrop);
-        Glide.with(this).load(dish.getAvatar()).centerCrop().into(imageView);
+        Glide.with(this).load(dish.getImage()).centerCrop().into(imageView);
     }
 }

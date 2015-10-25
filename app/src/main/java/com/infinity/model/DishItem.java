@@ -1,18 +1,72 @@
 package com.infinity.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 
 public class DishItem implements Serializable {
     private int id;
     private String name;
-    private String avatar;
-    private String description;
+    private String introduce;
+    private String image;
+    private String instruction;
+    private int aop;
+    private ArrayList<MaterialItem> materials;
 
-    public DishItem(int id, String name, String avatar, String description) {
+    public DishItem(int id, String name, String image, String introduce) {
         this.id = id;
         this.name = name;
-        this.avatar = avatar;
-        this.description = description;
+        this.image = image;
+        this.introduce = introduce;
+    }
+
+    public DishItem(int id, String name, String introduce, String image, String instruction, int aop, ArrayList<MaterialItem> materials) {
+        this.id = id;
+        this.name = name;
+        this.introduce = introduce;
+        this.image = image;
+        this.instruction = instruction;
+        this.aop = aop;
+        this.materials = materials;
+    }
+
+    public String getIntroduce() {
+        return introduce;
+    }
+
+    public void setIntroduce(String introduce) {
+        this.introduce = introduce;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
+    public String getInstruction() {
+        return instruction;
+    }
+
+    public void setInstruction(String instruction) {
+        this.instruction = instruction;
+    }
+
+    public int getAop() {
+        return aop;
+    }
+
+    public void setAop(int aop) {
+        this.aop = aop;
+    }
+
+    public ArrayList<MaterialItem> getMaterials() {
+        return materials;
+    }
+
+    public void setMaterials(ArrayList<MaterialItem> materials) {
+        this.materials = materials;
     }
 
     public DishItem() {
@@ -34,19 +88,5 @@ public class DishItem implements Serializable {
         this.name = name;
     }
 
-    public String getAvatar() {
-        return avatar;
-    }
 
-    public void setAvatar(String avatar) {
-        this.avatar = avatar;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
 }

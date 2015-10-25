@@ -37,7 +37,7 @@ public class CategoryDetails extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.cat_details, container, false);
-        //set lai title khi dang xem category thoi
+
         dishLishView = (ListView) view.findViewById(R.id.listDish);
 
         dishListAdapter = new DishListAdapter(view.getContext(), R.layout.item_dish, dishList);
@@ -48,7 +48,7 @@ public class CategoryDetails extends Fragment {
         pDialog.setMessage("Loading...");
         pDialog.show();
 
-        loading();
+        getCategory();
 
         dishLishView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -107,6 +107,38 @@ public class CategoryDetails extends Fragment {
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    private void getCategory() {
+        if (ConnectionDetector.isNetworkConnected(getActivity().getApplicationContext())) {
+            try {
+                APIConnection.getListByCatogery("2", new VolleyCallback() {
+                    @Override
+                    public void onSuccess(JSONObject response) {
+                        hidePDialog();
+                        dishList = APIConnection.parseDishList(response);
+                        dishListAdapter = new DishListAdapter(getActivity().getApplicationContext(), R.layout.item_dish, dishList);
+                        dishLishView.setAdapter(dishListAdapter);
+                    }
+
+                    @Override
+                    public void onSuccess(JSONArray response) {
+                        hidePDialog();
+                    }
+
+                    @Override
+                    public void onError(VolleyError error) {
+                        hidePDialog();
+                    }
+
+                });
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        } else {
+            hidePDialog();
+            //show thog bao
         }
     }
 
