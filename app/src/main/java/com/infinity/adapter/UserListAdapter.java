@@ -69,8 +69,8 @@ public class UserListAdapter extends ArrayAdapter<UserItem> {
         }
         viewHolder.name.setText(item.getName());
         viewHolder.birthdate.setText(item.getBirthdate());
-        viewHolder.height.setText(String.valueOf(item.getHeight()));
-        viewHolder.weight.setText(String.valueOf(item.getWeight()));
+        viewHolder.height.setText("Chiều cao: " + String.valueOf(item.getHeight()));
+        viewHolder.weight.setText("Cân nặng: " + String.valueOf(item.getWeight()));
 //truong hop k co link anh ng dung
 //        if (item.getImgID() == 0 && !item.getTitle().equals("")) {
         String name = item.getName();
@@ -78,14 +78,15 @@ public class UserListAdapter extends ArrayAdapter<UserItem> {
         String name_split[] = name.split(" ");
         int l = name_split.length;
         if (l >= 2) {
-            String s = name_split[0].charAt(0) + ""
-                    + name_split[1].charAt(0);
+            String s = name_split[l - 2].charAt(0) + ""
+                    + name_split[l - 1].charAt(0);
             s = s.toUpperCase(Locale.getDefault());
             viewHolder.txtNameAvt.setText(s);
         } else {
             viewHolder.txtNameAvt.setText(name.charAt(0) + "");
 
         }
+
         viewHolder.img.setBackgroundResource(Var.DRAWABLE_LIST[(position + 3) % 6]);
 //        } else {
 //            viewHolder.img.setImageResource(item.getImgID());

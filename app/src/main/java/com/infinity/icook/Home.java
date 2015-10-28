@@ -1,10 +1,15 @@
 package com.infinity.icook;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentSender;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.media.MediaPlayer;
@@ -27,29 +32,47 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.VolleyError;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.Scopes;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Scope;
+import com.google.android.gms.plus.Plus;
 import com.infinity.adapter.CustomDrawerAdapter;
 import com.infinity.adapter.ImageAdapter;
+import com.infinity.data.Var;
 import com.infinity.fragment.CategoryDetails;
 import com.infinity.fragment.ChatFragment;
 import com.infinity.model.CatItem;
+import com.infinity.model.ChatMessage;
 import com.infinity.model.DrawerItem;
 import com.infinity.service.ClockService;
+import com.infinity.volley.APIConnection;
+import com.infinity.volley.VolleyCallback;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 
-public class Home extends Activity implements View.OnClickListener {
+public class Home extends Activity implements View.OnClickListener, GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener {
     private static final int REQUEST_CODE = 1234;
+    private GoogleApiClient mGoogleApiClient;
 
     private TextView NavTitle, iCookBtnText;
     private View iCookBtnLayout, chatBar;
@@ -76,6 +99,42 @@ public class Home extends Activity implements View.OnClickListener {
 
     private ArrayList<CatItem> items = new ArrayList<CatItem>();
 
+    private SharedPreferences sharedPreferences;
+    private String accessToken;
+    private String idEmail;
+
+    @Override
+    public void onConnected(Bundle bundle) {
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    private boolean mIsResolving = false;
+    private boolean mShouldResolve = false;
+    private static final int RC_SIGN_IN = 0;
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        if (!mIsResolving && mShouldResolve) {
+            if (connectionResult.hasResolution()) {
+                try {
+                    connectionResult.startResolutionForResult(this, RC_SIGN_IN);
+                    mIsResolving = true;
+                } catch (IntentSender.SendIntentException e) {
+                    Log.e(TAG, "Could not resolve ConnectionResult.", e);
+                    mIsResolving = false;
+                    mGoogleApiClient.connect();
+                }
+            } else {
+                Toast.makeText(this, "Xảy ra lỗi", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
     // tao enum mode cac kieu che do o man hinh chinh, Talk : noi chuyen voi AI, Browse : xem Category, Details :xem ben trong category
     private enum Mode {
         TALK, BROWSE, DETAILS
@@ -87,7 +146,17 @@ public class Home extends Activity implements View.OnClickListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(Plus.API)
+                .addScope(new Scope(Scopes.PROFILE))
+                .addScope(new Scope(Scopes.EMAIL))
+                .build();
 
+        sharedPreferences = getSharedPreferences(Var.MY_PREFERENCES, Context.MODE_PRIVATE);
+        accessToken = sharedPreferences.getString(Var.ACCESS_TOKEN, "");
+        idEmail = sharedPreferences.getString(Var.USER_EMAIL, "");
         DisplayMetrics displaymetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
         screenHeight = displaymetrics.heightPixels;
@@ -139,7 +208,7 @@ public class Home extends Activity implements View.OnClickListener {
         gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v,
                                     int position, long id) {
-                OpenDetails(items.get(position));
+                OpenDetails(items.get(position), String.valueOf(position + 1));
             }
         });
         barbtn.setOnClickListener(this);
@@ -147,17 +216,29 @@ public class Home extends Activity implements View.OnClickListener {
         btnSend.setOnClickListener(this);
     }
 
-    private void addItemToCategoryList() {
-        items.add(new CatItem(R.drawable.cat_cake, "Cake"));
-        items.add(new CatItem(R.drawable.cat_egg, "Egg"));
-        items.add(new CatItem(R.drawable.cat_fish, "Fish"));
-        items.add(new CatItem(R.drawable.cat_meat, "Meat"));
-        items.add(new CatItem(R.drawable.cat_soup, "Soup"));
-        items.add(new CatItem(R.drawable.cat_vegetable, "Vegetable"));
+    @Override
+    public void onStart() {
+        super.onStart();
+        mGoogleApiClient.connect();
     }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        mGoogleApiClient.disconnect();
+    }
+    private void addItemToCategoryList() {
+        items.add(new CatItem(R.drawable.cat_egg, "Duck"));
+        items.add(new CatItem(R.drawable.cat_meat, "Meat"));
+        items.add(new CatItem(R.drawable.cat_vegetable, "Vegetable"));
+        items.add(new CatItem(R.drawable.cat_soup, "Soup"));
+        items.add(new CatItem(R.drawable.cat_fish, "Fish"));
+        items.add(new CatItem(R.drawable.cat_cake, "Cake"));
+    }
+
     // ham mo 1 category
-    public void OpenDetails(CatItem item) {
-        catdetails = new CategoryDetails(item.getName());
+    public void OpenDetails(CatItem item, String position) {
+        catdetails = new CategoryDetails(position);
         FragmentTransaction fragmentTransaction;
         barid = R.string.icon_back;
         fragmentTransaction = fragmentManager.beginTransaction();
@@ -176,13 +257,14 @@ public class Home extends Activity implements View.OnClickListener {
 
     // ham dong category
     private void CloseDetails() {
+        Log.d("TienDH", "close details");
         fragmentManager.popBackStack();
         fragmentTransaction = null;
     }
 
     private ArrayList initDrawerData() {
         ArrayList list = new ArrayList();
-        list.add(new DrawerItem("Hoàng Tiến", "Đẹp Trai", R.drawable.ava));
+        list.add(new DrawerItem(idEmail, "", R.drawable.ava));
         list.add(new DrawerItem("Thông tin gia đình", R.string.users));
         list.add(new DrawerItem("Báo thức", R.string.settings_icon));
         list.add(new DrawerItem("Đăng xuất", R.string.logout_icon));
@@ -203,16 +285,63 @@ public class Home extends Activity implements View.OnClickListener {
                     startActivity(intent);
                     break;
                 case 2:
-
+                    intent = new Intent(getApplicationContext(), ClockActivity.class);
+                    mDrawerLayout.closeDrawer(Gravity.LEFT);
+                    startActivity(intent);
                     break;
                 case 3:
-
+                    //logout
+                    createDialog();
                     break;
                 default:
                     break;
             }
-
         }
+    }
+
+    public void createDialog() {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("\n Đăng xuất ngay bây giờ? \n");
+        builder.setCancelable(false);
+
+        builder.setPositiveButton("HỦY",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+
+        builder.setNegativeButton("ĐĂNG XUẤT", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                onSignOutClicked();
+            }
+        });
+        builder.create().show();
+    }
+
+    private ProgressDialog progressDialog;
+
+    private void onSignOutClicked() {
+        //logout
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Đăng xuất...");
+        progressDialog.show();
+
+        if (mGoogleApiClient.isConnected()) {
+            Plus.AccountApi.clearDefaultAccount(mGoogleApiClient);
+            mGoogleApiClient.disconnect();
+        }
+
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.remove(Var.ACCESS_TOKEN);
+        editor.remove(Var.USER_EMAIL);
+        editor.commit();
+
+        progressDialog.cancel();
+        Intent intent = new Intent(this, SqlashScreen.class);
+        startActivity(intent);
+        finish();
     }
 
     @Override
@@ -225,6 +354,7 @@ public class Home extends Activity implements View.OnClickListener {
                         break;
                     case TALK:
                         startVoiceRecognitionActivity();
+                        Log.d("TienDH", "mode:  " + mode.toString());
                         break;
                 }
                 switchMode();
@@ -237,6 +367,7 @@ public class Home extends Activity implements View.OnClickListener {
                         switch (mode) {
                             case TALK: // truong hop bam nut back khi dang o fragment chat voi bot
                                 mode = Mode.BROWSE; // set mode = browse roi chay ham switchMode() de tro ve mode browse
+                                Log.d("TienDH", "mode click barbtn:  " + mode.toString());
                                 CloseDetails();
                                 break;
                             case DETAILS:  // truong hop bam nut back khi dang o fragment xem category
@@ -256,16 +387,13 @@ public class Home extends Activity implements View.OnClickListener {
                 }
             }
             case R.id.btnSend:
-                chatview.sendChatMessage(chatText.getText().toString());
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        String s = chatText.getText().toString();
-                        if (!s.equals("")) {
-                            speakTTS(s);
-                        }
-                    }
-                }).start();
+                String text = chatText.getText().toString();
+                if (text != null && !text.equals("")) {
+                    ChatMessage message = new ChatMessage(false, text, "");
+                    chatview.sendChatMessage(message);
+                    chat(text);
+//                    closeKeyboard();
+                }
                 chatText.setText("");
                 break;
             default:
@@ -307,11 +435,8 @@ public class Home extends Activity implements View.OnClickListener {
 
                     private void hideKeyboard() {
                         if (chatText != null) {
-                            InputMethodManager imanager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                            imanager.hideSoftInputFromWindow(chatText.getWindowToken(), 0);
-
+                            closeKeyboard();
                         }
-
                     }
                 });
                 chatText.addTextChangedListener(new TextWatcher() {
@@ -347,6 +472,11 @@ public class Home extends Activity implements View.OnClickListener {
         }
     }
 
+    private void closeKeyboard() {
+        InputMethodManager imanager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imanager.hideSoftInputFromWindow(chatText.getWindowToken(), 0);
+    }
+
     //mo google voice
     private void startVoiceRecognitionActivity() {
         try {
@@ -364,28 +494,20 @@ public class Home extends Activity implements View.OnClickListener {
         }
     }
 
-    /**
-     * Handle the results from the voice recognition activity.
-     */
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            // Populate the wordsList with the String values the recognition
-            // engine thought it heard
+
             final ArrayList<String> matches = data
                     .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
             if (matches.size() != 0) {
-                chatview.sendChatMessage(matches.get(0));
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        String s = matches.get(0);
-                        if (!s.equals("")) {
-                            speakTTS(s);
-                        }
-                    }
-                }).start();
+                String text = matches.get(0);
+                if (text != null && !text.equals("")) {
+                    ChatMessage message = new ChatMessage(false, text, "");
+                    chatview.sendChatMessage(message);
+                    chat(text);
+                }
                 chatText.setText("");
             }
         }
@@ -419,7 +541,7 @@ public class Home extends Activity implements View.OnClickListener {
 
     public void downloadFile(final String URL, final String filePath) {
         try {
-            java.net.URL url = new URL(URL);
+            java.net.URL url = new java.net.URL(URL);
             Log.e(TAG, "Download URL: " + url.toString());
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestMethod("GET");
@@ -496,13 +618,12 @@ public class Home extends Activity implements View.OnClickListener {
 
     private int time;
 
-    public void startService(String tmp) {
-        if (tmp.equals("")) {
-            Toast.makeText(this, "set Time again !", Toast.LENGTH_SHORT).show();
-        } else {
-            time = Integer.parseInt(tmp);
+    public void startService(int tmp) {
+        if (tmp != 0) {
+            time = (tmp);
             Intent intent = (new Intent(getBaseContext(), ClockService.class));
             intent.putExtra("time", time);
+            Log.d("TienDH", "start service");
             stopService(intent);
             startService(intent);
         }
@@ -512,5 +633,138 @@ public class Home extends Activity implements View.OnClickListener {
     public void stopService() {
         Intent intent = (new Intent(getBaseContext(), ClockService.class));
         stopService(intent);
+    }
+
+    public void talk(final String msg) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (!msg.equals("")) {
+                    speakTTS(msg);
+                }
+            }
+        }).start();
+    }
+
+    private void chat(String text) {
+        try {
+            APIConnection.getChat(this, text, new VolleyCallback() {
+                @Override
+                public void onSuccess(JSONObject response) {
+                    Log.d("TienDH", "chat res: " + response);
+                    // xu ly
+                    String result = "";
+                    try {
+                        int type = response.getInt("type");
+                        switch (type) {
+                            case 1:
+                                result = response.getString("result");
+                                if (!result.equals("") && result != null) {
+                                    ChatMessage message = new ChatMessage(true, result, "");
+                                    chatview.sendChatMessage(message);
+                                }
+                                break;
+                            case 2:
+                                JSONArray data = response.getJSONArray("data");
+                                for (int i = 0; i < data.length(); i++) {
+                                    result = result + " " + (String) data.get(i);
+                                }
+                                Log.d("TienDH", "type 1: " + result);
+                                if (!result.equals("") && result != null) {
+                                    ChatMessage message = new ChatMessage(true, result, "");
+                                    chatview.sendChatMessage(message);
+                                }
+                                break;
+                            case 3:
+
+                                break;
+                            case 4:
+                                smartConsult();
+
+                                break;
+                            case 5:
+                                result = response.getString("result");
+                                String[] timeResult = result.split(":");
+                                int h = 0, m = 0, t = 0;
+                                if (timeResult.length >= 2) {
+                                    h = Integer.parseInt(timeResult[0]);
+                                    m = Integer.parseInt(timeResult[1]);
+                                    t = (h * 60 + m) * 60;
+                                }
+                                if (t != 0) {
+                                    result = "Tôi sẽ nhắc bạn sau " + convertTime(h, m) + " nữa";
+                                    ChatMessage message = new ChatMessage(true, result + "", "");
+                                    chatview.sendChatMessage(message);
+                                }
+                                long timeCurrent = System.currentTimeMillis();
+                                long endTime = timeCurrent + t * 1000;
+                                String dateString = new SimpleDateFormat("h:mm a").format(new Date(endTime));
+                                Log.d("TienDH", "time end: " + dateString);
+                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                editor.putString(Var.CLOCK_TIME, dateString);
+                                editor.commit();
+                                //goi service
+                                startService(t);
+                                break;
+                            case 6:
+                                break;
+                        }
+                        talk(result);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onSuccess(JSONArray response) {
+
+                }
+
+                @Override
+                public void onError(VolleyError error) {
+
+                }
+            });
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void smartConsult() {
+        try {
+            APIConnection.sendToken(getApplicationContext(), accessToken, new VolleyCallback() {
+                @Override
+                public void onSuccess(JSONObject response) {
+
+                }
+
+                @Override
+                public void onSuccess(JSONArray response) {
+
+                }
+
+                @Override
+                public void onError(VolleyError error) {
+
+                }
+            });
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String convertTime(int h, int m) {
+        String rs = "";
+        if (h != 0) {
+            rs = rs + h + " tiếng";
+            if (m != 0) {
+                rs = rs + " " + m + " phút";
+            }
+        } else {
+            if (m != 0) {
+                rs = rs + " " + m + " phút";
+            }
+        }
+        return rs;
     }
 }

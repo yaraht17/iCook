@@ -29,5 +29,6 @@
     <string name="icon_back">&#xf053;</string>
     <string name="icon_microphone">&#xf130;</string>
     <string name="title_activity_clock">ClockActivity</string>
+    <string name="title_activity_sqlash_screen">SqlashScreen</string>
 
 </resources>

@@ -34,10 +34,9 @@ public class ChatFragment extends Fragment {
     }
 
 
-    public void sendChatMessage(String s) {
-        if (s == null || s.equals("")) return;
-        chatAdapter.add(new ChatMessage(false, s, ""));
-        chatAdapter.add(new ChatMessage(true, s, ""));
+    public void sendChatMessage(ChatMessage message) {
+        chatAdapter.add(message);
+//        chatAdapter.add(new ChatMessage(true, s, ""));
     }
 
 

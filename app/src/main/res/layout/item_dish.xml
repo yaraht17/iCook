@@ -13,6 +13,7 @@
         android:src="@drawable/empty_photo" />
 
     <RelativeLayout
+        android:layout_marginLeft="10dp"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="4">
@@ -23,7 +24,9 @@
             android:layout_height="wrap_content"
             android:text="Bánh ngọt"
             android:textColor="#7d7d7d"
-            android:textSize="20dp"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:textSize="18dp"
             android:textStyle="bold" />
 
         <TextView

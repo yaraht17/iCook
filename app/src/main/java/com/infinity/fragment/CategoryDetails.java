@@ -4,16 +4,17 @@ import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.android.volley.VolleyError;
 import com.infinity.adapter.DishListAdapter;
 import com.infinity.data.ConnectionDetector;
+import com.infinity.data.Data;
 import com.infinity.data.Var;
 import com.infinity.icook.DishDetailActivity;
 import com.infinity.icook.R;
@@ -22,7 +23,6 @@ import com.infinity.volley.APIConnection;
 import com.infinity.volley.VolleyCallback;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
@@ -34,6 +34,8 @@ public class CategoryDetails extends Fragment {
     private ListView dishLishView;
     private DishListAdapter dishListAdapter;
     private ProgressDialog pDialog;
+
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.cat_details, container, false);
@@ -47,9 +49,18 @@ public class CategoryDetails extends Fragment {
         // Showing progress dialog before making http request
         pDialog.setMessage("Loading...");
         pDialog.show();
+        pDialog.setCancelable(false);
+        pDialog.setCanceledOnTouchOutside(false);
 
-        getCategory();
-
+        int index = Integer.parseInt(title) - 1;
+        if (Data.dishCache[index] != null) {
+            hidePDialog();
+            dishList = Data.dishCache[index];
+            dishListAdapter = new DishListAdapter(view.getContext(), R.layout.item_dish, dishList);
+            dishLishView.setAdapter(dishListAdapter);
+        } else {
+            getCategory(title);
+        }
         dishLishView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -62,62 +73,15 @@ public class CategoryDetails extends Fragment {
         return view;
     }
 
-    private void loading() {
+    private void getCategory(String id) {
         if (ConnectionDetector.isNetworkConnected(getActivity().getApplicationContext())) {
             try {
-                APIConnection.demoGetAPI("", new VolleyCallback() {
-                    @Override
-                    public void onSuccess(JSONObject response) {
-                        hidePDialog();
-                    }
-
-                    @Override
-                    public void onSuccess(JSONArray response) {
-                        hidePDialog();
-                        Log.d("TienDH", "res success: " + response);
-                        // Parsing json
-                        for (int i = 0; i < response.length(); i++) {
-                            try {
-
-                                JSONObject obj = response.getJSONObject(i);
-
-                                String name = obj.getString("title");
-                                String url = obj.getString("image");
-
-                                String des = obj.getString("releaseYear");
-
-                                DishItem dish = new DishItem(1, name, url, des);
-                                // adding movie to movies array
-                                dishList.add(dish);
-                                dishListAdapter = new DishListAdapter(getActivity().getApplicationContext(), R.layout.item_dish, dishList);
-                                dishLishView.setAdapter(dishListAdapter);
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-
-                        }
-                    }
-
-                    @Override
-                    public void onError(VolleyError error) {
-                        hidePDialog();
-                    }
-
-                });
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private void getCategory() {
-        if (ConnectionDetector.isNetworkConnected(getActivity().getApplicationContext())) {
-            try {
-                APIConnection.getListByCatogery("2", new VolleyCallback() {
+                APIConnection.getListByCatogery(getActivity().getApplicationContext(), id, new VolleyCallback() {
                     @Override
                     public void onSuccess(JSONObject response) {
                         hidePDialog();
                         dishList = APIConnection.parseDishList(response);
+                        Data.dishCache[Integer.parseInt(title) - 1] = dishList;
                         dishListAdapter = new DishListAdapter(getActivity().getApplicationContext(), R.layout.item_dish, dishList);
                         dishLishView.setAdapter(dishListAdapter);
                     }
@@ -130,8 +94,8 @@ public class CategoryDetails extends Fragment {
                     @Override
                     public void onError(VolleyError error) {
                         hidePDialog();
+                        Toast.makeText(getActivity().getApplicationContext(), "Xảy ra lỗi!", Toast.LENGTH_SHORT).show();
                     }
-
                 });
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
@@ -139,14 +103,8 @@ public class CategoryDetails extends Fragment {
         } else {
             hidePDialog();
             //show thog bao
+            Toast.makeText(getActivity().getApplicationContext(), "Vui lòng kết nối internet!", Toast.LENGTH_LONG).show();
         }
-    }
-
-    private ArrayList createListDemo() {
-        ArrayList<DishItem> list = new ArrayList<>();
-        list.add(new DishItem(1, "Bánh Mỳ", "", "Ngon"));
-        list.add(new DishItem(2, "Bánh GATO", "", "Cũng rất ngon"));
-        return list;
     }
 
     @Override

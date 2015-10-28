@@ -82,7 +82,7 @@ public class DishListAdapter extends ArrayAdapter<DishItem> {
         viewHolder.dishName.setText(item.getName());
 //        viewHolder.img.setImageResource(R.drawable.cat_cake);
         viewHolder.img.setImageUrl(item.getImage(), imageLoader);
-        viewHolder.des.setText(item.getInstruction());
+        viewHolder.des.setText(item.getIntroduce());
         return row;
     }
 

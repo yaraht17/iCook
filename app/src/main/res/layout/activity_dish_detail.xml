@@ -66,17 +66,16 @@
                     android:layout_height="wrap_content">
 
                     <TextView
-                        android:id="@+id/title"
+                        android:id="@+id/name"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Info"
+                        android:text="Name"
                         android:textAppearance="@style/TextAppearance.AppCompat.Title" />
 
                     <TextView
                         android:id="@+id/description"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/cheese_ipsum" />
+                        android:layout_height="wrap_content" />
 
                 </LinearLayout>
 
@@ -95,15 +94,16 @@
                     android:layout_height="wrap_content">
 
                     <TextView
+                        android:id="@+id/title_instruction"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Friends"
+                        android:text="Hướng dẫn"
                         android:textAppearance="@style/TextAppearance.AppCompat.Title" />
 
                     <TextView
+                        android:id="@+id/instruction"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/cheese_ipsum" />
+                        android:layout_height="wrap_content" />
 
                 </LinearLayout>
 
@@ -122,15 +122,16 @@
                     android:layout_height="wrap_content">
 
                     <TextView
+                        android:id="@+id/aop"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Related"
                         android:textAppearance="@style/TextAppearance.AppCompat.Title" />
 
                     <TextView
+                        android:id="@+id/material"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/cheese_ipsum" />
+                        android:layout_height="wrap_content" />
 
                 </LinearLayout>
 
@@ -141,6 +142,7 @@
     </android.support.v4.widget.NestedScrollView>
 
     <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/fab_margin"

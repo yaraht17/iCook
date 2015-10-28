@@ -41,11 +41,10 @@
                     android:layout_gravity="center"
                     android:layout_margin="10dp"
                     android:layout_weight="10"
-                    android:background="@drawable/edittext_style"
+                    android:background="@drawable/square"
                     android:ellipsize="start"
                     android:hint="Họ và tên"
-                    android:padding="5dp"
-                    android:textStyle="bold" />
+                    android:padding="5dp" />
             </LinearLayout>
 
             <View
@@ -75,11 +74,15 @@
                     android:layout_gravity="center"
                     android:layout_margin="10dp"
                     android:layout_weight="10"
-                    android:background="@drawable/edittext_style"
+                    android:background="@drawable/square"
                     android:ellipsize="start"
-                    android:hint="Ngày sinh"
-                    android:padding="5dp"
-                    android:textStyle="bold" />
+                    android:hint="Ngày sinh (dd/mm/yyyy)"
+                    android:padding="5dp" />
+
+                <!--<DatePicker-->
+                <!--android:id="@+id/dpBirthdate"-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="100dp" />-->
             </LinearLayout>
 
             <View
@@ -108,11 +111,10 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_margin="10dp"
-                    android:background="@drawable/edittext_style"
+                    android:background="@drawable/square"
                     android:ellipsize="start"
-                    android:hint="Chiều cao"
-                    android:padding="5dp"
-                    android:textStyle="bold" />
+                    android:hint="Chiều cao (cm)"
+                    android:padding="5dp" />
             </LinearLayout>
 
             <View
@@ -141,13 +143,45 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_margin="10dp"
-                    android:background="@drawable/edittext_style"
+                    android:background="@drawable/square"
                     android:ellipsize="start"
-                    android:hint="Cân nặng"
-                    android:padding="5dp"
-                    android:textStyle="bold" />
+                    android:hint="Cân nặng (kg)"
+                    android:padding="5dp" />
             </LinearLayout>
 
+
+            <View
+                android:layout_width="fill_parent"
+                android:layout_height="1dp"
+                android:background="#3399FF" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:padding="10dp">
+
+                <RadioGroup
+                    android:id="@+id/radio_group"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <RadioButton
+                        android:id="@+id/rbtnMale"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Name" />
+
+                    <RadioButton
+                        android:id="@+id/rbtnFemale"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="40dp"
+                        android:text="Nữ" />
+                </RadioGroup>
+            </LinearLayout>
 
             <View
                 android:layout_width="fill_parent"
@@ -167,8 +201,7 @@
                     android:layout_height="match_parent"
                     android:layout_margin="5dp"
                     android:layout_weight="1"
-                    android:text="Thoát"
-                    android:textStyle="bold" />
+                    android:text="Thoát" />
 
                 <Button
                     android:id="@+id/btnSave"
@@ -176,8 +209,7 @@
                     android:layout_height="match_parent"
                     android:layout_margin="5dp"
                     android:layout_weight="1"
-                    android:text="Thêm"
-                    android:textStyle="bold" />
+                    android:text="Thêm" />
 
             </LinearLayout>
         </LinearLayout>
