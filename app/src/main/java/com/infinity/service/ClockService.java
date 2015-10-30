@@ -10,7 +10,7 @@ import android.os.Message;
 import com.infinity.icook.R;
 
 public class ClockService extends Service {
-
+    public static final String TAG = "MyServiceTag";
     private int time;
 
     @Override

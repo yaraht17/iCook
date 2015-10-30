@@ -7,18 +7,21 @@ public class Var {
     public static final String MY_PREFERENCES = "PRE_LOGIN";
     public static final String ACCESS_TOKEN = "token";
 
-    public static final String URL_HOST_DEMO = "http://api.androidhive.info/json/movies.json";
-    public static final String URL_HOST = "http://zozy.me";
+    public static final String URL_HOST_DEFAULT = "http://api.androidhive.info/json/movies.json";
+    public static String URL_HOST = "http://teaminfinity.xyz";
 
     //Login
     public static final String LOGIN_ID = "id";
 
-    public static final String API_GET_LIST = URL_HOST + "/icook/cat?id=";
-    public static final String API_LOGIN = URL_HOST + "/icook/accounts/login";
-    public static final String API_ADD_USER = URL_HOST + "/icook/accounts/info";
-    public static final String API_GET_USER = URL_HOST + "/icook/accounts/info/";
-    public static final String API_CHAT = URL_HOST + "/icook/chat?mess=";
-    public static final String API_SEND_TOKEN = URL_HOST + "/icook/chat...";
+    public static final String API_GET_LIST = URL_HOST + "/icook/cat.php?id=";
+    public static final String API_LOGIN = URL_HOST + "/icook/login.php";
+    public static final String API_ADD_USER = URL_HOST + "/icook/info.php";
+    public static final String API_GET_USER = URL_HOST + "/icook/info.php?token=";
+    public static final String API_CHAT = URL_HOST + "/icook/chat.php?mess=";
+    public static final String API_SEND_TOKEN = URL_HOST + "/icook/getdish.php?token=";
+    public static final String API_GET_MAT = URL_HOST + "/icook/getmat.php?token=";
+    public static final String PARAM_DISH_ID = "&dishid=";
+
     //Dish
     public static final String DISH_ID = "id";
     public static final String DISH_NAME = "name";

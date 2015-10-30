@@ -40,12 +40,17 @@ import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.plus.Plus;
 import com.infinity.adapter.CustomDrawerAdapter;
 import com.infinity.adapter.ImageAdapter;
+import com.infinity.data.ConnectionDetector;
+import com.infinity.data.Data;
+import com.infinity.data.Progress;
 import com.infinity.data.Var;
 import com.infinity.fragment.CategoryDetails;
 import com.infinity.fragment.ChatFragment;
 import com.infinity.model.CatItem;
 import com.infinity.model.ChatMessage;
+import com.infinity.model.DishItem;
 import com.infinity.model.DrawerItem;
+import com.infinity.model.MaterialItem;
 import com.infinity.service.ClockService;
 import com.infinity.volley.APIConnection;
 import com.infinity.volley.VolleyCallback;
@@ -228,7 +233,7 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
         mGoogleApiClient.disconnect();
     }
     private void addItemToCategoryList() {
-        items.add(new CatItem(R.drawable.cat_egg, "Duck"));
+        items.add(new CatItem(R.drawable.cat_egg, "Poultry"));
         items.add(new CatItem(R.drawable.cat_meat, "Meat"));
         items.add(new CatItem(R.drawable.cat_vegetable, "Vegetable"));
         items.add(new CatItem(R.drawable.cat_soup, "Soup"));
@@ -354,6 +359,7 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                         break;
                     case TALK:
                         startVoiceRecognitionActivity();
+                        mode = Mode.TALK;
                         Log.d("TienDH", "mode:  " + mode.toString());
                         break;
                 }
@@ -371,6 +377,8 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                                 CloseDetails();
                                 break;
                             case DETAILS:  // truong hop bam nut back khi dang o fragment xem category
+                                mode = Mode.BROWSE;
+                                CloseDetails();
                                 break;
                         }
                         //setup lai man hinh chinh
@@ -409,6 +417,7 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
     private void switchMode() {
         switch (mode) {
             case BROWSE: // tro ve mode browse tu cac mode khac
+                CloseDetails();
                 Log.d("Value", "Switch to browse");
                 iCookBtnLayout.animate().translationX(0).setInterpolator(new AccelerateDecelerateInterpolator());
                 iCookBtnText.setTypeface(font_tony);
@@ -535,6 +544,7 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
             public void run() {
                 initMediaPlayer(filePath);
                 mediaPlayer.start();
+
             }
         });
     }
@@ -618,10 +628,11 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
 
     private int time;
 
-    public void startService(int tmp) {
+    public void startService(final String tag, int tmp) {
         if (tmp != 0) {
             time = (tmp);
             Intent intent = (new Intent(getBaseContext(), ClockService.class));
+            intent.addCategory(tag);
             intent.putExtra("time", time);
             Log.d("TienDH", "start service");
             stopService(intent);
@@ -630,12 +641,13 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
 
     }
 
-    public void stopService() {
+    public void stopService(final String tag) {
         Intent intent = (new Intent(getBaseContext(), ClockService.class));
+        intent.addCategory(tag);
         stopService(intent);
     }
 
-    public void talk(final String msg) {
+    public void talkTTS(final String msg) {
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -647,7 +659,8 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
     }
 
     private void chat(String text) {
-        try {
+        if (ConnectionDetector.isNetworkConnected(getApplicationContext())) {
+            try {
             APIConnection.getChat(this, text, new VolleyCallback() {
                 @Override
                 public void onSuccess(JSONObject response) {
@@ -658,31 +671,52 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                         int type = response.getInt("type");
                         switch (type) {
                             case 1:
+                                //DONE : tra loi
                                 result = response.getString("result");
                                 if (!result.equals("") && result != null) {
                                     ChatMessage message = new ChatMessage(true, result, "");
                                     chatview.sendChatMessage(message);
+                                    talkTTS(result);
                                 }
                                 break;
                             case 2:
+                                //TAM DONE: lay ve string
+                                ArrayList<String> steps = new ArrayList<String>();
                                 JSONArray data = response.getJSONArray("data");
                                 for (int i = 0; i < data.length(); i++) {
-                                    result = result + " " + (String) data.get(i);
+                                    String s = (String) data.get(i);
+                                    steps.add(s);
                                 }
-                                Log.d("TienDH", "type 1: " + result);
-                                if (!result.equals("") && result != null) {
-                                    ChatMessage message = new ChatMessage(true, result, "");
+                                //convert string
+                                ArrayList<String> stepsTalk = Progress.tokenizer(steps);
+                                for (String talk : stepsTalk) {
+                                    result = result + talk + " ";
+                                    ChatMessage message = new ChatMessage(true, talk, "");
                                     chatview.sendChatMessage(message);
                                 }
+                                talkTTS(result);
                                 break;
                             case 3:
-
+                                String talk3 = "";
+                                ArrayList<DishItem> dishList = APIConnection.parseDishSmart(response);
+                                for (DishItem dish : dishList) {
+                                    talk3 = talk3 + dish.getName() + ", ";
+                                }
+                                if (!talk3.equals("")) {
+                                    ChatMessage message3 = new ChatMessage(true, "Bạn có thể nấu " + talk3, "");
+                                    chatview.sendChatMessage(message3);
+                                    talkTTS("Bạn có thể nấu " + talk3);
+                                } else {
+                                    talkTTS("Tôi không hiểu bạn nói gì cả");
+                                }
                                 break;
                             case 4:
-                                smartConsult();
-
+                                Log.d("TienDH", "Hôm nay ăn gì?");
+                                smartConsult(accessToken);
                                 break;
                             case 5:
+                                //DONE
+                                //chuyen xau ve so
                                 result = response.getString("result");
                                 String[] timeResult = result.split(":");
                                 int h = 0, m = 0, t = 0;
@@ -691,27 +725,159 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                                     m = Integer.parseInt(timeResult[1]);
                                     t = (h * 60 + m) * 60;
                                 }
+                                //them tin nhan
                                 if (t != 0) {
                                     result = "Tôi sẽ nhắc bạn sau " + convertTime(h, m) + " nữa";
                                     ChatMessage message = new ChatMessage(true, result + "", "");
                                     chatview.sendChatMessage(message);
                                 }
+                                //tinh tgian bao thuc
                                 long timeCurrent = System.currentTimeMillis();
                                 long endTime = timeCurrent + t * 1000;
                                 String dateString = new SimpleDateFormat("h:mm a").format(new Date(endTime));
                                 Log.d("TienDH", "time end: " + dateString);
+                                //luu lai
                                 SharedPreferences.Editor editor = sharedPreferences.edit();
                                 editor.putString(Var.CLOCK_TIME, dateString);
                                 editor.commit();
                                 //goi service
-                                startService(t);
+                                startService(ClockService.TAG, t);
+                                talkTTS(result);
                                 break;
                             case 6:
+                                int aop = response.getInt("aop");
+                                if (aop != 0) {
+                                    //show nguyen lieu
+                                    String mess = "Bạn cần chuẩn bị ";
+                                    String talk = "Bạn cần chuẩn bị ";
+                                    JSONArray dataMat = response.getJSONArray("data");
+                                    ArrayList<MaterialItem> materials = APIConnection.parseMaterialList(dataMat);
+                                    for (MaterialItem material : materials) {
+                                        String unit = "";
+                                        if (material.getUnit().equals("g")) {
+                                            unit = "gam";
+                                        } else if (material.getUnit().equals("ml")) {
+                                            unit = "mi li lít";
+                                        } else {
+                                            unit = material.getUnit();
+                                        }
+                                        if (!material.getAmount().equals("0")) {
+                                            mess = mess + material.getAmount() + material.getUnit() + " " + material.getName() + ", ";
+                                            talk = talk + material.getAmount() + " " + unit + " " + material.getName() + ", ";
+                                        } else {
+                                            mess = mess + material.getName() + ", ";
+                                            talk = talk + material.getName() + ", ";
+                                        }
+                                    }
+                                    ChatMessage message = new ChatMessage(true, mess, "");
+                                    chatview.sendChatMessage(message);
+                                    Log.d("TienDH", "talk: " + talk);
+                                    talkTTS(talk);
+                                } else {
+                                    String idDish = response.getString("result");
+                                    getMat(accessToken, idDish);
+                                    //gui token
+                                }
                                 break;
+                            case 7:
+                                //next
+                                if (Data.recomendDish != null) {
+                                    Log.d("TienDH", "data : " + Data.recomendDish.size());
+                                    String talkFinal = "";
+                                    String messFinal = "";
+                                    for (DishItem dish : Data.recomendDish) {
+                                        String talk = "";
+                                        String mess = "";
+                                        for (MaterialItem material : dish.getMaterials()) {
+                                            String unit = "";
+                                            if (material.getUnit().equals("g")) {
+                                                unit = "gam";
+                                            } else if (material.getUnit().equals("ml")) {
+                                                unit = "mi li lít";
+                                            } else {
+                                                unit = material.getUnit();
+                                            }
+                                            if (!material.getAmount().equals("0")) {
+                                                mess = mess + material.getAmount() + material.getUnit() + " " + material.getName() + ", ";
+                                                talk = talk + material.getAmount() + " " + unit + " " + material.getName() + ", ";
+                                            } else {
+                                                mess = mess + material.getName() + ", ";
+                                                talk = talk + material.getName() + ", ";
+                                            }
+                                        }
+                                        talkFinal += talk;
+                                        messFinal += mess;
+                                    }
+                                    if (!messFinal.equals("") && !talkFinal.equals("")) {
+                                        ChatMessage message = new ChatMessage(true, "Bạn cần chuẩn bị " + messFinal, "");
+                                        chatview.sendChatMessage(message);
+                                        talkTTS("Bạn cần chuẩn bị " + talkFinal);
+                                    } else {
+                                        talkTTS("Tôi không hiểu bạn nói gì cả");
+                                    }
+                                } else {
+                                    talkTTS("Ý bạn là chuẩn bị gì cơ");
+                                }
+                                Data.recomendDish = null;
                         }
-                        talk(result);
+
                     } catch (JSONException e) {
                         e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onSuccess(JSONArray response) {
+
+                }
+
+                @Override
+                public void onError(VolleyError error) {
+                    Toast.makeText(getApplicationContext(), "Xảy ra lỗi!", Toast.LENGTH_LONG).show();
+                }
+            });
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        } else {
+            //show thog bao
+            Toast.makeText(getApplicationContext(), "Vui lòng kết nối internet!", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    // lay nguyen lieu theo thong tin ng dung
+    private void getMat(String token, String idDish) {
+        try {
+            APIConnection.getMat(getApplicationContext(), token, idDish, new VolleyCallback() {
+                @Override
+                public void onSuccess(JSONObject response) {
+                    //show nguyen lieu
+                    String mess = "";
+                    String talk = "";
+                    DishItem dish = APIConnection.parseDish(response);
+                    for (MaterialItem material : dish.getMaterials()) {
+                        String unit = "";
+                        if (material.getUnit().equals("g")) {
+                            unit = "gam";
+                        } else if (material.getUnit().equals("ml")) {
+                            unit = "mi li lít";
+                        } else {
+                            unit = material.getUnit();
+                        }
+                        if (!material.getAmount().equals("0")) {
+                            mess = mess + material.getAmount() + material.getUnit() + " " + material.getName() + ", ";
+                            talk = talk + material.getAmount() + " " + unit + " " + material.getName() + ", ";
+                        } else {
+                            mess = mess + material.getName() + ", ";
+                            talk = talk + material.getName() + ", ";
+                        }
+                    }
+                    if (!mess.equals("") && !talk.equals("")) {
+                        ChatMessage message = new ChatMessage(true, "Bạn cần chuẩn bị " + mess, "");
+                        chatview.sendChatMessage(message);
+                        talkTTS("Bạn cần chuẩn bị " + talk);
+                    } else {
+                        talkTTS("Tôi không hiểu bạn nói gì cả");
                     }
                 }
 
@@ -730,12 +896,27 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
         }
     }
 
-    private void smartConsult() {
+    //lay mon an thong minh
+    private void smartConsult(String token) {
         try {
-            APIConnection.sendToken(getApplicationContext(), accessToken, new VolleyCallback() {
+            APIConnection.sendToken(getApplicationContext(), token, new VolleyCallback() {
                 @Override
                 public void onSuccess(JSONObject response) {
-
+                    String talk = "";
+                    String dishTalk = "";
+                    ArrayList<DishItem> listDish = APIConnection.parseDishSmart(response);
+                    Data.recomendDish = (ArrayList<DishItem>) listDish.clone();
+                    for (DishItem dish : listDish) {
+                        dishTalk = dishTalk + dish.getName() + ", ";
+                    }
+                    talk += dishTalk;
+                    if (!talk.equals("")) {
+                        ChatMessage message = new ChatMessage(true, "Bạn có thể nấu " + talk, "");
+                        chatview.sendChatMessage(message);
+                        talkTTS("Bạn có thể nấu " + talk);
+                    } else {
+                        talkTTS("Tôi không hiểu bạn nói gì cả");
+                    }
                 }
 
                 @Override

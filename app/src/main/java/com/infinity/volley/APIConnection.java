@@ -219,6 +219,7 @@ public class APIConnection {
                 (Request.Method.GET, Var.API_CHAT + URLEncoder.encode(message, "utf-8"), null, new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
+                        Log.d("TienDH", "res chat: " + response);
                         callback.onSuccess(response);
                     }
                 }, new Response.ErrorListener() {
@@ -242,6 +243,27 @@ public class APIConnection {
                 (Request.Method.GET, Var.API_SEND_TOKEN + token, null, new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
+                        Log.d("TienDH", "Res :" + response.toString());
+                        callback.onSuccess(response);
+                    }
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.d("TienDH", "Res Error" + error.toString());
+                    }
+                });
+        Log.d("TienDH", "json sendToken: " + jsObjRequest.toString());
+        MySingleton.getInstance(context).addToRequestQueue(jsObjRequest);
+    }
+
+    public static void getMat(Context context, String token, String idDish, final VolleyCallback callback) throws UnsupportedEncodingException {
+        String url = "";
+        url = Var.API_GET_MAT + token + Var.PARAM_DISH_ID + idDish;
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest
+                (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.d("TienDH", "res mat: " + response);
                         callback.onSuccess(response);
                     }
                 }, new Response.ErrorListener() {
@@ -302,6 +324,49 @@ public class APIConnection {
         return list;
     }
 
+    public static ArrayList<DishItem> parseDishSmart(JSONObject response) {
+        ArrayList<DishItem> list = new ArrayList<>();
+
+        try {
+            JSONArray arrayData = response.getJSONArray("data");
+            for (int i = 0; i < arrayData.length(); i++) {
+                JSONObject object = arrayData.getJSONObject(i);
+                int id = object.getInt(Var.DISH_ID);
+                String name = object.getString(Var.DISH_NAME);
+                String introduce = object.getString(Var.DISH_INTRODUCE);
+                String image = object.getString(Var.DISH_IMAGE);
+                String instruction = object.getString(Var.DISH_INSTRUCTION);
+                int aop = object.getInt(Var.DISH_AOP);
+                ArrayList<MaterialItem> materials = APIConnection.parseMaterialList(object.getJSONArray(Var.DISH_MATERIALS));
+                DishItem dish = new DishItem(id, name, introduce, image, instruction, aop, materials);
+                Log.d("TienDH", dish.getName());
+                list.add(dish);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    public static DishItem parseDish(JSONObject response) {
+        DishItem dish = new DishItem();
+        try {
+            JSONObject object = response;
+            int id = object.getInt(Var.DISH_ID);
+            String name = object.getString(Var.DISH_NAME);
+            String introduce = object.getString(Var.DISH_INTRODUCE);
+            String image = object.getString(Var.DISH_IMAGE);
+            String instruction = object.getString(Var.DISH_INSTRUCTION);
+            int aop = object.getInt(Var.DISH_AOP);
+            ArrayList<MaterialItem> materials = APIConnection.parseMaterialList(object.getJSONArray(Var.DISH_MATERIALS));
+            dish = new DishItem(id, name, introduce, image, instruction, aop, materials);
+            Log.d("TienDH", dish.getName());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return dish;
+    }
     public static ArrayList<MaterialItem> parseMaterialList(JSONArray jsonArray) {
         ArrayList<MaterialItem> list = new ArrayList<>();
         for (int i = 0; i < jsonArray.length(); i++) {
