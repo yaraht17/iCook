@@ -9,7 +9,6 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
@@ -30,7 +29,7 @@ import java.util.Map;
 
 public class APIConnection {
 
-
+    //get cac mon an trong catogery
     public static void getListByCatogery(Context context, String value, final VolleyCallback callback) throws UnsupportedEncodingException {
         String url = "";
         String query = URLEncoder.encode(value, "utf-8");
@@ -60,28 +59,6 @@ public class APIConnection {
         MySingleton.getInstance(context).addToRequestQueue(jsObjRequest);
     }
 
-    public static void demoGetAPI(Context context, String value, final VolleyCallback callback) throws UnsupportedEncodingException {
-        String url = "";
-        String query = URLEncoder.encode(value, "utf-8");
-        url = Var.URL_HOST + query;
-
-
-        JsonArrayRequest movieReq = new JsonArrayRequest(url,
-                new Response.Listener<JSONArray>() {
-                    @Override
-                    public void onResponse(JSONArray response) {
-//                        Log.d("TienDH", "res ok: " + response);
-                        callback.onSuccess(response);
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.d("TienDH", "res err: " + error);
-                callback.onError(error);
-            }
-        });
-        MySingleton.getInstance(context).addToRequestQueue(movieReq);
-    }
 
     public static void login(Context context, final String id, final VolleyCallback callback) throws JSONException {
 

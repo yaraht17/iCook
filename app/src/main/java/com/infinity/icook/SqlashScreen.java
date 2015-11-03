@@ -26,13 +26,11 @@ import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.plus.Plus;
-import com.google.android.gms.plus.model.people.Person;
 import com.infinity.data.ConnectionDetector;
 import com.infinity.data.Var;
 import com.infinity.volley.APIConnection;
 import com.infinity.volley.VolleyCallback;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -99,23 +97,28 @@ public class SqlashScreen extends AppCompatActivity implements
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mGoogleApiClient.disconnect();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(KEY_IS_RESOLVING, mIsResolving);
+        outState.putBoolean(KEY_SHOULD_RESOLVE, mShouldResolve);
+    }
+
+    // google override
+    @Override
     public void onConnected(Bundle bundle) {
-
         mShouldResolve = false;
-        if (Plus.PeopleApi.getCurrentPerson(mGoogleApiClient) != null) {
-            Person currentPerson = Plus.PeopleApi.getCurrentPerson(mGoogleApiClient);
-            String personName = currentPerson.getDisplayName();
-            String personGooglePlusProfile = currentPerson.getUrl();
-            String personBirthday = currentPerson.getBirthday();
-            Log.d(TAG, "Info: " + personName + "  " + personGooglePlusProfile + " " + personBirthday);
-//            if (accessToken.equals("")) {
-//                new GetIdTokenTask().execute();
-//
-//            }
-            //checkLogin();
-            //get token
-
-        }
         if (accessToken.equals("")) {
             String email = Plus.AccountApi.getAccountName(mGoogleApiClient);
             Log.d(TAG, "Info: " + email);
@@ -142,33 +145,17 @@ public class SqlashScreen extends AppCompatActivity implements
                         e.printStackTrace();
                     }
                 }
-
-                @Override
-                public void onSuccess(JSONArray response) {
-
-                }
-
                 @Override
                 public void onError(VolleyError error) {
-
                 }
             });
         }
-
     }
 
     @Override
     public void onConnectionSuspended(int i) {
         Toast.makeText(this, "Lỗi", Toast.LENGTH_LONG).show();
     }
-
-    @Override
-    public void onClick(View v) {
-        if (v.getId() == R.id.sign_in_button) {
-            onSignInClicked();
-        }
-    }
-
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
@@ -187,10 +174,13 @@ public class SqlashScreen extends AppCompatActivity implements
             } else {
                 showErrorDialog(connectionResult);
             }
-        } else {
-//            if (!mGoogleApiClient.isConnected()) {
-//                btnLoginGoogle.setVisibility(View.VISIBLE);
-//            }
+        }
+    } /* end of google override */
+
+    @Override
+    public void onClick(View v) {
+        if (v.getId() == R.id.sign_in_button) {
+            onSignInClicked();
         }
     }
 
@@ -219,21 +209,13 @@ public class SqlashScreen extends AppCompatActivity implements
         }
     }
 
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putBoolean(KEY_IS_RESOLVING, mIsResolving);
-        outState.putBoolean(KEY_SHOULD_RESOLVE, mShouldResolve);
-    }
 
     private void showLogin() {
-
         layoutLogo.animate().translationY(-300).setDuration(500).setInterpolator(new AccelerateDecelerateInterpolator());
         mHandler.postDelayed(delay, 1 * 1000);
     }
 
     private void showSignedInUI() {
-
         Intent intent = new Intent(this, Home.class);
         startActivity(intent);
         finish();
@@ -246,21 +228,9 @@ public class SqlashScreen extends AppCompatActivity implements
             //khong token
             onSignOut();
             showLogin();
-
         }
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        mGoogleApiClient.connect();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        mGoogleApiClient.disconnect();
-    }
 
     private void onSignInClicked() {
         if (ConnectionDetector.isNetworkConnected(getApplicationContext())) {

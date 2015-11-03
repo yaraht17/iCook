@@ -9,8 +9,7 @@ public class Data {
 
     public static ArrayList<DishItem>[] dishCache = new ArrayList[6];
     public static ArrayList<UserItem> usersCache;
-
     public static ArrayList<DishItem> recomendDish;
-
     public static ArrayList<String> stepInstruction;
+    public static String repeat;
 }

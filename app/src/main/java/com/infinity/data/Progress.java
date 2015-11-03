@@ -1,6 +1,14 @@
 package com.infinity.data;
 
+import android.util.Log;
+
+import com.infinity.model.MaterialItem;
+import com.infinity.model.OutputItem;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -15,6 +23,53 @@ public class Progress {
         Set<String> set = new HashSet<String>(list);
         return set.contains(s);
 
+    }
+
+    public static String convertTime(int h, int m) {
+        String rs = "";
+        if (h != 0) {
+            rs = rs + h + " tiếng";
+            if (m != 0) {
+                rs = rs + " " + m + " phút";
+            }
+        } else {
+            if (m != 0) {
+                rs = rs + " " + m + " phút";
+            }
+        }
+        return rs;
+    }
+
+    public static OutputItem convertMatListToOutput(ArrayList<MaterialItem> materials) {
+        String talk = "";
+        String mess = "";
+        for (MaterialItem material : materials) {
+            String unit = "";
+            if (material.getUnit().equals("g")) {
+                unit = "gam";
+            } else if (material.getUnit().equals("ml")) {
+                unit = "mi li lít";
+            } else {
+                unit = material.getUnit();
+            }
+            if (!material.getAmount().equals("0")) {
+                mess = mess + material.getAmount() + material.getUnit() + " " + material.getName() + ", ";
+                talk = talk + material.getAmount() + " " + unit + " " + material.getName() + ", ";
+            } else {
+                mess = mess + material.getName() + ", ";
+                talk = talk + material.getName() + ", ";
+            }
+        }
+        Log.d("TienDH", "Convert - talk: " + talk + " mess: " + mess);
+        return new OutputItem(talk, mess);
+    }
+
+    public static String formatDate(String date, String initDateFormat, String endDateFormat) throws ParseException {
+
+        Date initDate = new SimpleDateFormat(initDateFormat).parse(date);
+        SimpleDateFormat formatter = new SimpleDateFormat(endDateFormat);
+        String parsedDate = formatter.format(initDate);
+        return parsedDate;
     }
     public static ArrayList<String> tokenizer(ArrayList<String> arinput) {
         ArrayList<String> aroutput = new ArrayList<>();

@@ -22,7 +22,6 @@ import com.infinity.model.DishItem;
 import com.infinity.volley.APIConnection;
 import com.infinity.volley.VolleyCallback;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
@@ -84,11 +83,6 @@ public class CategoryDetails extends Fragment {
                         Data.dishCache[Integer.parseInt(title) - 1] = dishList;
                         dishListAdapter = new DishListAdapter(getActivity().getApplicationContext(), R.layout.item_dish, dishList);
                         dishLishView.setAdapter(dishListAdapter);
-                    }
-
-                    @Override
-                    public void onSuccess(JSONArray response) {
-                        hidePDialog();
                     }
 
                     @Override

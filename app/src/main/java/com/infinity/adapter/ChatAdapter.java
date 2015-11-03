@@ -5,7 +5,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.infinity.icook.R;
@@ -42,27 +41,11 @@ public class ChatAdapter extends ArrayAdapter<ChatMessage> {
         viewHolder.message = (TextView) row.findViewById(R.id.msgr);
         row.setTag(viewHolder);
         viewHolder.message.setText(chatMessageObj.message);
-//        if (chatMessageObj.left == true) {
-//            viewHolder.avatar.setImageResource(R.drawable.cat_cake);
-//        } else {
-//            viewHolder.avatar.setImageResource(R.drawable.cat_egg);
-//            String path = Environment.getExternalStorageDirectory() + "/SAM/pictures/avatar.png";
-//            Bitmap bitmap = BitmapFactory.decodeFile(path);
-//            if (bitmap != null) {
-//                Log.d("TienDH", "bitmap not null");
-//                bitmap = Bitmap.createScaledBitmap(bitmap, 50, 50, true);
-//                viewHolder.avatar.setImageBitmap(bitmap);
-//            } else {
-//                viewHolder.avatar.setImageResource(R.drawable.benhnhan);
-//            }
-
-//        }
         return row;
     }
 
     private class ViewHolder {
         TextView message;
-        ImageView avatar;
     }
 
 

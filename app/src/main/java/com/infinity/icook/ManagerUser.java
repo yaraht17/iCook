@@ -21,20 +21,18 @@ import com.android.volley.VolleyError;
 import com.infinity.adapter.UserListAdapter;
 import com.infinity.data.ConnectionDetector;
 import com.infinity.data.Data;
+import com.infinity.data.Progress;
 import com.infinity.data.Var;
 import com.infinity.model.UserItem;
 import com.infinity.volley.APIConnection;
 import com.infinity.volley.VolleyCallback;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 
 public class ManagerUser extends AppCompatActivity implements View.OnClickListener {
 
@@ -150,7 +148,7 @@ public class ManagerUser extends AppCompatActivity implements View.OnClickListen
                             String date = txtBirthdate.getText().toString();
                             String dateString = "";
                             try {
-                                dateString = formatDate(date, "dd/mm/yyyy", "yyyy:mm:dd");
+                                dateString = Progress.formatDate(date, "dd/mm/yyyy", "yyyy:mm:dd");
                                 Log.d("TienDH", "date :" + dateString);
                             } catch (ParseException e) {
                                 e.printStackTrace();
@@ -177,10 +175,6 @@ public class ManagerUser extends AppCompatActivity implements View.OnClickListen
                                             } catch (JSONException e) {
                                                 e.printStackTrace();
                                             }
-                                        }
-
-                                        @Override
-                                        public void onSuccess(JSONArray response) {
                                         }
 
                                         @Override
@@ -216,11 +210,6 @@ public class ManagerUser extends AppCompatActivity implements View.OnClickListen
                     }
 
                     @Override
-                    public void onSuccess(JSONArray response) {
-                        hidePDialog();
-                    }
-
-                    @Override
                     public void onError(VolleyError error) {
                         hidePDialog();
                     }
@@ -234,13 +223,7 @@ public class ManagerUser extends AppCompatActivity implements View.OnClickListen
         }
     }
 
-    public String formatDate(String date, String initDateFormat, String endDateFormat) throws ParseException {
 
-        Date initDate = new SimpleDateFormat(initDateFormat).parse(date);
-        SimpleDateFormat formatter = new SimpleDateFormat(endDateFormat);
-        String parsedDate = formatter.format(initDate);
-        return parsedDate;
-    }
 
     @Override
     public void onDestroy() {

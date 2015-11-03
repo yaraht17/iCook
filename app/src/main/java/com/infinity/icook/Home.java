@@ -12,7 +12,6 @@ import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.support.v4.widget.DrawerLayout;
@@ -51,7 +50,9 @@ import com.infinity.model.ChatMessage;
 import com.infinity.model.DishItem;
 import com.infinity.model.DrawerItem;
 import com.infinity.model.MaterialItem;
+import com.infinity.model.OutputItem;
 import com.infinity.service.ClockService;
+import com.infinity.service.TextToSpeech;
 import com.infinity.volley.APIConnection;
 import com.infinity.volley.VolleyCallback;
 
@@ -59,14 +60,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -109,20 +103,24 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
     private String idEmail;
 
     private int steps = 0;
+    private boolean mIsResolving = false;
+    private boolean mShouldResolve = false;
+    private static final int RC_SIGN_IN = 0;
 
+    Mode mode;
+    private ProgressDialog progressDialog;
+
+    // tao enum mode cac kieu che do o man hinh chinh, Talk : noi chuyen voi AI, Browse : xem Category, Details :xem ben trong category
+    private enum Mode {
+        TALK, BROWSE, DETAILS
+    }
     @Override
     public void onConnected(Bundle bundle) {
-
     }
 
     @Override
     public void onConnectionSuspended(int i) {
-
     }
-
-    private boolean mIsResolving = false;
-    private boolean mShouldResolve = false;
-    private static final int RC_SIGN_IN = 0;
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
@@ -132,7 +130,7 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                     connectionResult.startResolutionForResult(this, RC_SIGN_IN);
                     mIsResolving = true;
                 } catch (IntentSender.SendIntentException e) {
-                    Log.e(TAG, "Could not resolve ConnectionResult.", e);
+                    Log.e("TienDH", "Could not resolve ConnectionResult.", e);
                     mIsResolving = false;
                     mGoogleApiClient.connect();
                 }
@@ -142,12 +140,6 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
         }
     }
 
-    // tao enum mode cac kieu che do o man hinh chinh, Talk : noi chuyen voi AI, Browse : xem Category, Details :xem ben trong category
-    private enum Mode {
-        TALK, BROWSE, DETAILS
-    }
-
-    Mode mode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -180,6 +172,7 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
         btnSend = (TextView) findViewById(R.id.btnSend);
         chatText = (EditText) findViewById(R.id.chatText);
 
+        //setup drawer
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
         drawerDataList = initDrawerData();
@@ -234,6 +227,7 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
         super.onStop();
         mGoogleApiClient.disconnect();
     }
+
     private void addItemToCategoryList() {
         items.add(new CatItem(R.drawable.cat_egg, "Poultry"));
         items.add(new CatItem(R.drawable.cat_meat, "Meat"));
@@ -253,7 +247,6 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
 
         this.NavTitle.setText(item.getName());
         this.barbtn.setText(R.string.icon_back);
-
 
         fragmentTransaction.replace(R.id.contents, catdetails);
         fragmentTransaction.addToBackStack(null);
@@ -307,18 +300,15 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
     }
 
     public void createDialog() {
-
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage("\n Đăng xuất ngay bây giờ? \n");
         builder.setCancelable(false);
-
         builder.setPositiveButton("HỦY",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         dialog.cancel();
                     }
                 });
-
         builder.setNegativeButton("ĐĂNG XUẤT", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 onSignOutClicked();
@@ -327,24 +317,19 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
         builder.create().show();
     }
 
-    private ProgressDialog progressDialog;
-
+    //logout
     private void onSignOutClicked() {
-        //logout
         progressDialog = new ProgressDialog(this);
         progressDialog.setMessage("Đăng xuất...");
         progressDialog.show();
-
         if (mGoogleApiClient.isConnected()) {
             Plus.AccountApi.clearDefaultAccount(mGoogleApiClient);
             mGoogleApiClient.disconnect();
         }
-
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.remove(Var.ACCESS_TOKEN);
         editor.remove(Var.USER_EMAIL);
         editor.commit();
-
         progressDialog.cancel();
         Intent intent = new Intent(this, SqlashScreen.class);
         startActivity(intent);
@@ -402,7 +387,6 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                     ChatMessage message = new ChatMessage(false, text, "");
                     chatview.sendChatMessage(message);
                     chat(text);
-//                    closeKeyboard();
                 }
                 chatText.setText("");
                 break;
@@ -437,13 +421,11 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                 iCookBtnText.setText(R.string.icon_microphone);
                 iCookBtnText.setTextSize(50);
                 chatText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-
                     public void onFocusChange(View v, boolean hasFocus) {
                         if (!hasFocus) {
                             hideKeyboard();
                         }
                     }
-
                     private void hideKeyboard() {
                         if (chatText != null) {
                             closeKeyboard();
@@ -525,87 +507,10 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-    public void stopSpeakVi() {
-        mediaPlayer.stop();
-    }
-
-    private String TAG = "SMAC 2015 TTS";
-    private String mHost = "http://118.69.135.22";
-
-    //tai file wav tu host va phat am
-    @SuppressWarnings("deprecation")
-    public void speakTTS(String msg) {
-        String URL = mHost + "/synthesis/file?voiceType=female&text=" + URLEncoder.encode(msg);
-        downloadFile(URL, "sdcard/sound.wav");
-    }
-
-    //phat am
-    public void speakVi(final String filePath) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                initMediaPlayer(filePath);
-                mediaPlayer.start();
-
-            }
-        });
-    }
-
-    public void downloadFile(final String URL, final String filePath) {
-        try {
-            java.net.URL url = new java.net.URL(URL);
-            Log.e(TAG, "Download URL: " + url.toString());
-            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-            urlConnection.setRequestMethod("GET");
-            urlConnection.setRequestProperty("accept-charset", "UTF-8");
-            urlConnection.setRequestProperty("content-type", "application/x-www-form-urlencoded; charset=utf-8");
-            urlConnection.setDoOutput(true);
-            urlConnection.connect();
-            InputStream inputStream = urlConnection.getInputStream();
-            final File file = new File(filePath);
-            FileOutputStream fileOutput = new FileOutputStream(file);
-            byte[] buffer = new byte[1024];
-            int bufferLength = 0;
-            while ((bufferLength = inputStream.read(buffer)) > 0) {
-                fileOutput.write(buffer, 0, bufferLength);
-            }
-            speakVi(file.getAbsolutePath());
-            fileOutput.close();
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public int stateMediaPlayer;
-    public final int stateMP_Error = 0;
-    public final int stateMP_NotStarter = 1;
-    public MediaPlayer mediaPlayer;
-
-    public void initMediaPlayer(String path) {
-        String PATH_TO_FILE = path;
-        mediaPlayer = new MediaPlayer();
-        try {
-            mediaPlayer.setDataSource(PATH_TO_FILE);
-            mediaPlayer.prepare();
-            stateMediaPlayer = stateMP_NotStarter;
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-            stateMediaPlayer = stateMP_Error;
-        } catch (IllegalStateException e) {
-            e.printStackTrace();
-            stateMediaPlayer = stateMP_Error;
-        } catch (IOException e) {
-            e.printStackTrace();
-            stateMediaPlayer = stateMP_Error;
-        }
-    }
 
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-
         switch (barid) {
             case R.string.icon_back: {
                 switch (mode) {
@@ -623,19 +528,13 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                 break;
             }
         }
-//        if (fragmentManager == null) {
-//            Toast.makeText(getApplicationContext(), "Press agian", Toast.LENGTH_SHORT).show();
-//        }
     }
-
-    private int time;
 
     public void startService(final String tag, int tmp) {
         if (tmp != 0) {
-            time = (tmp);
             Intent intent = (new Intent(getBaseContext(), ClockService.class));
             intent.addCategory(tag);
-            intent.putExtra("time", time);
+            intent.putExtra("time", tmp);
             Log.d("TienDH", "start service");
             stopService(intent);
             startService(intent);
@@ -654,7 +553,7 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
             @Override
             public void run() {
                 if (!msg.equals("")) {
-                    speakTTS(msg);
+                    TextToSpeech.speakTTS(msg);
                 }
             }
         }).start();
@@ -677,9 +576,7 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                                         //DONE : tra loi
                                         result = response.getString("result");
                                         if (!result.equals("") && result != null) {
-                                            ChatMessage message = new ChatMessage(true, result, "");
-                                            chatview.sendChatMessage(message);
-                                            talkTTS(result);
+                                            TalkAndSendMess(new OutputItem(result));
                                         }
                                         break;
                                     case 2:
@@ -694,29 +591,22 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                                         //convert string
                                         ArrayList<String> stepsTalk = Progress.tokenizer(steps);
                                         Data.stepInstruction = (ArrayList<String>) stepsTalk.clone();
-//                                for (String talk : stepsTalk) {
-//                                    result = result + talk + " ";
-//                                    ChatMessage message = new ChatMessage(true, talk, "");
-//                                    chatview.sendChatMessage(message);
-//                                }
                                         result = stepsTalk.get(0);
-                                        ChatMessage message = new ChatMessage(true, result, "");
-                                        chatview.sendChatMessage(message);
                                         Log.d("TienDH", "thuc hien: " + result);
-                                        talkTTS(result);
+                                        if (!result.equals("") && result != null) {
+                                            TalkAndSendMess(new OutputItem(result));
+                                        }
                                         break;
                                     case 3:
-                                        String talk3 = "";
+                                        result = "";
                                         ArrayList<DishItem> dishList = APIConnection.parseDishSmart(response);
                                         for (DishItem dish : dishList) {
-                                            talk3 = talk3 + dish.getName() + ", ";
+                                            result = result + dish.getName() + ", ";
                                         }
-                                        if (!talk3.equals("")) {
-                                            ChatMessage message3 = new ChatMessage(true, "Bạn có thể nấu " + talk3, "");
-                                            chatview.sendChatMessage(message3);
-                                            talkTTS("Bạn có thể nấu " + talk3);
+                                        if (!result.equals("") && result != null) {
+                                            TalkAndSendMess(new OutputItem("Bạn có thể nấu " + result));
                                         } else {
-                                            talkTTS("Tôi không hiểu bạn nói gì cả");
+                                            TalkAndSendMess(new OutputItem("Tôi không hiểu bạn nói gì cả"));
                                         }
                                         break;
                                     case 4:
@@ -736,22 +626,19 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                                         }
                                         //them tin nhan
                                         if (t != 0) {
-                                            result = "Tôi sẽ nhắc bạn sau " + convertTime(h, m) + " nữa";
-                                            ChatMessage message5 = new ChatMessage(true, result + "", "");
-                                            chatview.sendChatMessage(message5);
+                                            result = "Tôi sẽ nhắc bạn sau " + Progress.convertTime(h, m) + " nữa";
+                                            TalkAndSendMess(new OutputItem(result));
+                                            //tinh tgian bao thuc
+                                            long timeCurrent = System.currentTimeMillis();
+                                            long endTime = timeCurrent + t * 1000;
+                                            String dateString = new SimpleDateFormat("h:mm a").format(new Date(endTime));
+                                            //luu lai
+                                            SharedPreferences.Editor editor = sharedPreferences.edit();
+                                            editor.putString(Var.CLOCK_TIME, dateString);
+                                            editor.commit();
+                                            //goi service
+                                            startService(ClockService.TAG, t);
                                         }
-                                        //tinh tgian bao thuc
-                                        long timeCurrent = System.currentTimeMillis();
-                                        long endTime = timeCurrent + t * 1000;
-                                        String dateString = new SimpleDateFormat("h:mm a").format(new Date(endTime));
-                                        Log.d("TienDH", "time end: " + dateString);
-                                        //luu lai
-                                        SharedPreferences.Editor editor = sharedPreferences.edit();
-                                        editor.putString(Var.CLOCK_TIME, dateString);
-                                        editor.commit();
-                                        //goi service
-                                        startService(ClockService.TAG, t);
-                                        talkTTS(result);
                                         break;
                                     case 6:
                                         int aop = response.getInt("aop");
@@ -760,28 +647,17 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                                             String mess = "Bạn cần chuẩn bị ";
                                             String talk = "Bạn cần chuẩn bị ";
                                             JSONArray dataMat = response.getJSONArray("data");
-                                            ArrayList<MaterialItem> materials = APIConnection.parseMaterialList(dataMat);
-                                            for (MaterialItem material : materials) {
-                                                String unit = "";
-                                                if (material.getUnit().equals("g")) {
-                                                    unit = "gam";
-                                                } else if (material.getUnit().equals("ml")) {
-                                                    unit = "mi li lít";
-                                                } else {
-                                                    unit = material.getUnit();
+                                            if (dataMat != null) {
+                                                ArrayList<MaterialItem> materials = APIConnection.parseMaterialList(dataMat);
+                                                OutputItem outMat = Progress.convertMatListToOutput(materials);
+                                                if (!outMat.getMess().equals("") && !outMat.getTalk().equals("")) {
+                                                    talk += outMat.getTalk();
+                                                    mess += outMat.getMess();
+                                                    TalkAndSendMess(new OutputItem(talk, mess));
                                                 }
-                                                if (!material.getAmount().equals("0")) {
-                                                    mess = mess + material.getAmount() + material.getUnit() + " " + material.getName() + ", ";
-                                                    talk = talk + material.getAmount() + " " + unit + " " + material.getName() + ", ";
-                                                } else {
-                                                    mess = mess + material.getName() + ", ";
-                                                    talk = talk + material.getName() + ", ";
-                                                }
+                                            } else {
+                                                TalkAndSendMess(new OutputItem("Tôi không hiểu bạn nói gì cả"));
                                             }
-                                            ChatMessage message6 = new ChatMessage(true, mess, "");
-                                            chatview.sendChatMessage(message6);
-                                            Log.d("TienDH", "talk: " + talk);
-                                            talkTTS(talk);
                                         } else {
                                             String idDish = response.getString("result");
                                             getMat(accessToken, idDish);
@@ -789,43 +665,24 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                                         }
                                         break;
                                     case 7:
-                                        //next
+                                        //can chuan bi gi?
                                         if (Data.recomendDish != null) {
-                                            Log.d("TienDH", "data : " + Data.recomendDish.size());
                                             String talkFinal = "";
                                             String messFinal = "";
                                             for (DishItem dish : Data.recomendDish) {
-                                                String talk = "";
-                                                String mess = "";
-                                                for (MaterialItem material : dish.getMaterials()) {
-                                                    String unit = "";
-                                                    if (material.getUnit().equals("g")) {
-                                                        unit = "gam";
-                                                    } else if (material.getUnit().equals("ml")) {
-                                                        unit = "mi li lít";
-                                                    } else {
-                                                        unit = material.getUnit();
-                                                    }
-                                                    if (!material.getAmount().equals("0")) {
-                                                        mess = mess + material.getAmount() + material.getUnit() + " " + material.getName() + ", ";
-                                                        talk = talk + material.getAmount() + " " + unit + " " + material.getName() + ", ";
-                                                    } else {
-                                                        mess = mess + material.getName() + ", ";
-                                                        talk = talk + material.getName() + ", ";
-                                                    }
-                                                }
-                                                talkFinal += talk;
-                                                messFinal += mess;
+                                                OutputItem outMat = Progress.convertMatListToOutput(dish.getMaterials());
+                                                talkFinal += outMat.getTalk();
+                                                messFinal += outMat.getMess();
                                             }
                                             if (!messFinal.equals("") && !talkFinal.equals("")) {
-                                                ChatMessage message7 = new ChatMessage(true, "Bạn cần chuẩn bị " + messFinal, "");
-                                                chatview.sendChatMessage(message7);
-                                                talkTTS("Bạn cần chuẩn bị " + talkFinal);
+                                                talkFinal = "Bạn cần chuẩn bị " + talkFinal;
+                                                messFinal = "Bạn cần chuẩn bị " + messFinal;
+                                                TalkAndSendMess(new OutputItem(talkFinal, messFinal));
                                             } else {
-                                                talkTTS("Tôi không hiểu bạn nói gì cả");
+                                                TalkAndSendMess(new OutputItem("Tôi không hiểu bạn nói gì cả"));
                                             }
                                         } else {
-                                            talkTTS("Ý bạn là chuẩn bị gì cơ");
+                                            TalkAndSendMess(new OutputItem("Ý bạn là chuẩn bị gì cơ"));
                                         }
                                         Data.recomendDish = null;
                                 }
@@ -833,11 +690,6 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
-                        }
-
-                        @Override
-                        public void onSuccess(JSONArray response) {
-
                         }
 
                         @Override
@@ -856,17 +708,13 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
             Log.d("TienDH", "Steps: " + Data.stepInstruction.size());
             if (steps >= Data.stepInstruction.size() - 1) {
                 String s = "Món ăn đã hoàn thành rồi, chúc bạn ngon miệng";
-                ChatMessage message = new ChatMessage(true, s, "");
-                chatview.sendChatMessage(message);
-                talkTTS(s);
+                TalkAndSendMess(new OutputItem(s));
                 steps = 0;
                 Data.stepInstruction = null;
             } else {
                 steps++;
                 String s = Data.stepInstruction.get(steps);
-                ChatMessage message = new ChatMessage(true, s, "");
-                chatview.sendChatMessage(message);
-                talkTTS(s);
+                TalkAndSendMess(new OutputItem(s));
             }
         }
     }
@@ -878,81 +726,53 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                 @Override
                 public void onSuccess(JSONObject response) {
                     //show nguyen lieu
-                    String mess = "";
-                    String talk = "";
+                    String mess = "Bạn cần chuẩn bị ";
+                    String talk = "Bạn cần chuẩn bị ";
                     DishItem dish = APIConnection.parseDish(response);
-                    for (MaterialItem material : dish.getMaterials()) {
-                        String unit = "";
-                        if (material.getUnit().equals("g")) {
-                            unit = "gam";
-                        } else if (material.getUnit().equals("ml")) {
-                            unit = "mi li lít";
-                        } else {
-                            unit = material.getUnit();
-                        }
-                        if (!material.getAmount().equals("0")) {
-                            mess = mess + material.getAmount() + material.getUnit() + " " + material.getName() + ", ";
-                            talk = talk + material.getAmount() + " " + unit + " " + material.getName() + ", ";
-                        } else {
-                            mess = mess + material.getName() + ", ";
-                            talk = talk + material.getName() + ", ";
-                        }
-                    }
-                    if (!mess.equals("") && !talk.equals("")) {
-                        ChatMessage message = new ChatMessage(true, "Bạn cần chuẩn bị " + mess, "");
-                        chatview.sendChatMessage(message);
-                        talkTTS("Bạn cần chuẩn bị " + talk);
+                    OutputItem outMat = Progress.convertMatListToOutput(dish.getMaterials());
+                    if (!outMat.getMess().equals("") && !outMat.getTalk().equals("")) {
+                        talk += outMat.getTalk();
+                        mess += outMat.getMess();
+                        TalkAndSendMess(new OutputItem(talk, mess));
+
                     } else {
-                        talkTTS("Tôi không hiểu bạn nói gì cả");
+                        TalkAndSendMess(new OutputItem("Tôi không hiểu bạn nói gì cả"));
                     }
                 }
-
-                @Override
-                public void onSuccess(JSONArray response) {
-
-                }
-
                 @Override
                 public void onError(VolleyError error) {
-
+                    Toast.makeText(getApplicationContext(), "Xảy ra lỗi!", Toast.LENGTH_LONG).show();
                 }
             });
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
     }
-
     //lay mon an thong minh
     private void smartConsult(String token) {
         try {
             APIConnection.sendToken(getApplicationContext(), token, new VolleyCallback() {
                 @Override
                 public void onSuccess(JSONObject response) {
-                    String talk = "";
+                    String talk = "Bạn có thể nấu ";
                     String dishTalk = "";
                     ArrayList<DishItem> listDish = APIConnection.parseDishSmart(response);
                     Data.recomendDish = (ArrayList<DishItem>) listDish.clone();
                     for (DishItem dish : listDish) {
                         dishTalk = dishTalk + dish.getName() + ", ";
                     }
-                    talk += dishTalk;
-                    if (!talk.equals("")) {
-                        ChatMessage message = new ChatMessage(true, "Bạn có thể nấu " + talk, "");
-                        chatview.sendChatMessage(message);
-                        talkTTS("Bạn có thể nấu " + talk);
+
+                    if (!dishTalk.equals("")) {
+                        talk += dishTalk;
+                        TalkAndSendMess(new OutputItem(talk));
                     } else {
-                        talkTTS("Tôi không hiểu bạn nói gì cả");
+                        TalkAndSendMess(new OutputItem("Tôi không hiểu bạn nói gì cả"));
                     }
                 }
 
                 @Override
-                public void onSuccess(JSONArray response) {
-
-                }
-
-                @Override
                 public void onError(VolleyError error) {
-
+                    Toast.makeText(getApplicationContext(), "Xảy ra lỗi!", Toast.LENGTH_LONG).show();
                 }
             });
         } catch (UnsupportedEncodingException e) {
@@ -960,27 +780,10 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
         }
     }
 
-    private String convertTime(int h, int m) {
-        String rs = "";
-        if (h != 0) {
-            rs = rs + h + " tiếng";
-            if (m != 0) {
-                rs = rs + " " + m + " phút";
-            }
-        } else {
-            if (m != 0) {
-                rs = rs + " " + m + " phút";
-            }
-        }
-        return rs;
+    private void TalkAndSendMess(OutputItem out) {
+        ChatMessage message = new ChatMessage(true, out.getMess(), "");
+        chatview.sendChatMessage(message);
+        talkTTS(out.getTalk());
     }
 
-    private int checkStep(String text, String[] list) {
-        for (int i = 0; i < list.length; i++) {
-            if (list[i].equals("text")) {
-                return 1;
-            }
-        }
-        return 0;
-    }
 }

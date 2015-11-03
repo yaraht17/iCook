@@ -14,7 +14,6 @@ import com.infinity.model.ChatMessage;
 
 import java.util.ArrayList;
 
-
 public class ChatFragment extends Fragment {
     //chat view
     private ChatAdapter chatAdapter;
@@ -33,10 +32,8 @@ public class ChatFragment extends Fragment {
         return view;
     }
 
-
     public void sendChatMessage(ChatMessage message) {
         chatAdapter.add(message);
-//        chatAdapter.add(new ChatMessage(true, s, ""));
     }
 
 
