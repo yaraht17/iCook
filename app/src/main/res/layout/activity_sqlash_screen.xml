@@ -23,17 +23,9 @@
             android:id="@+id/logo"
             android:layout_width="150dp"
             android:layout_height="150dp"
-            android:src="@drawable/cat_cake" />
+            android:src="@drawable/logo" />
 
-        <TextView
-            android:id="@+id/sam"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="iCook"
-            android:textColor="@color/white"
-            android:textSize="60dp"
-            android:textStyle="bold" />
+
     </LinearLayout>
 
     <com.google.android.gms.common.SignInButton

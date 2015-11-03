@@ -40,13 +40,12 @@ public class ChatAdapter extends ArrayAdapter<ChatMessage> {
             row = inflater.inflate(R.layout.item_chat_right, parent, false);
         }
         viewHolder.message = (TextView) row.findViewById(R.id.msgr);
-        viewHolder.avatar = (ImageView) row.findViewById(R.id.avatar);
         row.setTag(viewHolder);
         viewHolder.message.setText(chatMessageObj.message);
-        if (chatMessageObj.left == true) {
-            viewHolder.avatar.setImageResource(R.drawable.cat_cake);
-        } else {
-            viewHolder.avatar.setImageResource(R.drawable.cat_egg);
+//        if (chatMessageObj.left == true) {
+//            viewHolder.avatar.setImageResource(R.drawable.cat_cake);
+//        } else {
+//            viewHolder.avatar.setImageResource(R.drawable.cat_egg);
 //            String path = Environment.getExternalStorageDirectory() + "/SAM/pictures/avatar.png";
 //            Bitmap bitmap = BitmapFactory.decodeFile(path);
 //            if (bitmap != null) {
@@ -57,7 +56,7 @@ public class ChatAdapter extends ArrayAdapter<ChatMessage> {
 //                viewHolder.avatar.setImageResource(R.drawable.benhnhan);
 //            }
 
-        }
+//        }
         return row;
     }
 

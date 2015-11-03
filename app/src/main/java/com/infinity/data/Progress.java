@@ -5,7 +5,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+
 public class Progress {
+    public static boolean CheckList(String s,String[] input){
+
+        ArrayList<String> arinput = new ArrayList<>();
+        for(int i=0;i<input.length;i++) arinput.add(input[i]);
+        List<String> list = arinput;
+        Set<String> set = new HashSet<String>(list);
+        return set.contains(s);
+
+    }
     public static ArrayList<String> tokenizer(ArrayList<String> arinput) {
         ArrayList<String> aroutput = new ArrayList<>();
         String soche = "";

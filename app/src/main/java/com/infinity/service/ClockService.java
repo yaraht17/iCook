@@ -43,7 +43,7 @@ public class ClockService extends Service {
                 time--;
             }
             if (time == 0) {
-                MediaPlayer mediaPlayer = MediaPlayer.create(ClockService.this, R.raw.mariodie);
+                MediaPlayer mediaPlayer = MediaPlayer.create(ClockService.this, R.raw.sound);
                 mediaPlayer.start();
                 mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                     @Override

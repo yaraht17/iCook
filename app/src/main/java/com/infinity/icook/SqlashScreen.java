@@ -67,8 +67,6 @@ public class SqlashScreen extends AppCompatActivity implements
         font_tony = Typeface.createFromAsset(this.getAssets(), "uvf-slimtony.ttf");
         this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
         imageLogo = (ImageView) findViewById(R.id.logo);
-        TextView txtSam = (TextView) findViewById(R.id.sam);
-        txtSam.setTypeface(font_tony);
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)

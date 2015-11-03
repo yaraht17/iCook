@@ -10,20 +10,21 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="35dp"
         android:layout_toLeftOf="@+id/avatar"
-        android:background="@drawable/right"
+        android:layout_alignParentRight="true"
         android:paddingBottom="15dp"
         android:paddingLeft="10dp"
         android:paddingRight="10dp"
         android:paddingTop="15dp"
         android:text="Sampleright"
+        android:background="@drawable/buble_right"
         android:textColor="#000" />
 
-    <de.hdodenhof.circleimageview.CircleImageView xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:id="@+id/avatar"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
-        android:layout_alignParentRight="true"
-        android:gravity="center"
-        android:src="@drawable/cat_cake" />
+    <!--<de.hdodenhof.circleimageview.CircleImageView-->
+    <!--android:id="@+id/avatar"-->
+    <!--android:layout_width="30dp"-->
+    <!--android:layout_height="30dp"-->
+    <!--android:layout_alignParentRight="true"-->
+    <!--android:gravity="center"-->
+    <!--android:src="@drawable/cat_cake" />-->
 
 </RelativeLayout>

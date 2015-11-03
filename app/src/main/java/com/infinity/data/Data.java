@@ -11,4 +11,6 @@ public class Data {
     public static ArrayList<UserItem> usersCache;
 
     public static ArrayList<DishItem> recomendDish;
+
+    public static ArrayList<String> stepInstruction;
 }
