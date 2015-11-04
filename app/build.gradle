@@ -35,3 +35,6 @@ dependencies {
     compile 'de.hdodenhof:circleimageview:1.3.0'
     compile files('libs/volley.jar')
 }
+ant.importBuild 'assets.xml'
+preBuild.dependsOn(list, checksum)
+clean.dependsOn(clean_assets)

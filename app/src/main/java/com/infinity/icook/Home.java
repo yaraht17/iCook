@@ -12,6 +12,7 @@ import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.support.v4.widget.DrawerLayout;
@@ -60,6 +61,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -67,9 +70,15 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import edu.cmu.pocketsphinx.Assets;
+import edu.cmu.pocketsphinx.Hypothesis;
+import edu.cmu.pocketsphinx.RecognitionListener;
+import edu.cmu.pocketsphinx.SpeechRecognizer;
+
+import static edu.cmu.pocketsphinx.SpeechRecognizerSetup.defaultSetup;
 
 public class Home extends Activity implements View.OnClickListener, GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener {
+        GoogleApiClient.OnConnectionFailedListener, RecognitionListener {
     private static final int REQUEST_CODE = 1234;
     private GoogleApiClient mGoogleApiClient;
 
@@ -153,6 +162,8 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                 .addScope(new Scope(Scopes.EMAIL))
                 .build();
 
+        loadRecording();
+
         sharedPreferences = getSharedPreferences(Var.MY_PREFERENCES, Context.MODE_PRIVATE);
         accessToken = sharedPreferences.getString(Var.ACCESS_TOKEN, "");
         idEmail = sharedPreferences.getString(Var.USER_EMAIL, "");
@@ -228,6 +239,12 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
         mGoogleApiClient.disconnect();
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        recognizer.cancel();
+        recognizer.shutdown();
+    }
     private void addItemToCategoryList() {
         items.add(new CatItem(R.drawable.cat_egg, "Poultry"));
         items.add(new CatItem(R.drawable.cat_meat, "Meat"));
@@ -470,42 +487,7 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
         imanager.hideSoftInputFromWindow(chatText.getWindowToken(), 0);
     }
 
-    //mo google voice
-    private void startVoiceRecognitionActivity() {
-        try {
-            Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                    RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE,
-                    Locale.getDefault());
-            intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Bạn cần tư vấn....");
-            startActivityForResult(intent, REQUEST_CODE);
-        } catch (Exception e) {
-            Toast.makeText(this,
-                    "Điện thoại của bạn không hỗ trợ Google Voice", Toast.LENGTH_SHORT)
-                    .show();
-        }
-    }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-
-            final ArrayList<String> matches = data
-                    .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-            if (matches.size() != 0) {
-                String text = matches.get(0);
-                if (text != null && !text.equals("")) {
-                    ChatMessage message = new ChatMessage(false, text, "");
-                    chatview.sendChatMessage(message);
-                    chat(text);
-                }
-                chatText.setText("");
-            }
-        }
-        super.onActivityResult(requestCode, resultCode, data);
-    }
 
 
     @Override
@@ -786,4 +768,153 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
         talkTTS(out.getTalk());
     }
 
+    //mo google voice
+    private void startVoiceRecognitionActivity() {
+        //tat lang nghe de gianh mic cho google voice
+        recognizer.stop();
+        try {
+            Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                    RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE,
+                    Locale.getDefault());
+            intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Bạn cần tư vấn....");
+            startActivityForResult(intent, REQUEST_CODE);
+        } catch (Exception e) {
+            Toast.makeText(this,
+                    "Điện thoại của bạn không hỗ trợ Google Voice", Toast.LENGTH_SHORT)
+                    .show();
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+
+            final ArrayList<String> matches = data
+                    .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+            if (matches.size() != 0) {
+                String text = matches.get(0);
+                if (text != null && !text.equals("")) {
+                    ChatMessage message = new ChatMessage(false, text, "");
+                    chatview.sendChatMessage(message);
+                    chat(text);
+                }
+                chatText.setText("");
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+        //mo lai lang nghe
+        if (KWS_SEARCH.equals(KWS_SEARCH))
+            recognizer.startListening(KWS_SEARCH);
+    }
+
+    //listening icook
+      /* Named searches allow to quickly reconfigure the decoder */
+    private static final String KWS_SEARCH = "wakeup";
+
+    /* Keyword we are looking for to activate menu */
+    private static final String KEYPHRASE = "open voice";
+
+    private SpeechRecognizer recognizer;
+
+    private void loadRecording() {
+        new AsyncTask<Void, Void, Exception>() {
+            @Override
+            protected Exception doInBackground(Void... params) {
+                try {
+                    Assets assets = new Assets(Home.this);
+                    File assetDir = assets.syncAssets();
+                    setupRecognizer(assetDir);
+                } catch (IOException e) {
+                    return e;
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Exception result) {
+                if (result != null) {
+                    Toast.makeText(getApplicationContext(), "Recording failed", Toast.LENGTH_SHORT).show();
+                } else {
+                    switchSearch(KWS_SEARCH);
+                }
+            }
+        }.execute();
+    }
+
+    @Override
+    public void onBeginningOfSpeech() {
+
+    }
+
+    @Override
+    public void onEndOfSpeech() {
+        if (!recognizer.getSearchName().equals(KWS_SEARCH))
+            switchSearch(KWS_SEARCH);
+    }
+
+    @Override
+    public void onPartialResult(Hypothesis hypothesis) {
+        if (hypothesis == null)
+            return;
+        String text = hypothesis.getHypstr();
+        if (text.equals(KEYPHRASE)) {
+            switchSearch(KWS_SEARCH);
+//            Toast.makeText(this, "Ok google demo", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onResult(Hypothesis hypothesis) {
+        if (hypothesis != null) {
+            String text = hypothesis.getHypstr();
+            Toast.makeText(getApplicationContext(), text + "Turn on", Toast.LENGTH_SHORT).show();
+            switch (mode) {
+                case BROWSE:
+                    mode = Mode.TALK;
+                    talkTTS("tôi có thể giúp gì cho bạn");
+                    break;
+                case TALK:
+
+                    startVoiceRecognitionActivity();
+//                    loadRecording();
+//                    recognizer.startListening(KWS_SEARCH, 10000);
+                    mode = Mode.TALK;
+                    break;
+            }
+            switchMode();
+        }
+    }
+
+    @Override
+    public void onError(Exception e) {
+    }
+
+    @Override
+    public void onTimeout() {
+        switchSearch(KWS_SEARCH);
+    }
+
+    private void switchSearch(String searchName) {
+        recognizer.stop();
+        // If we are not spotting, start listening with timeout (10000 ms or 10 seconds).
+        if (searchName.equals(KWS_SEARCH))
+            recognizer.startListening(searchName);
+        else
+            recognizer.startListening(searchName, 1000);
+    }
+
+    private void setupRecognizer(File assetsDir) throws IOException {
+        recognizer = defaultSetup()
+                .setAcousticModel(new File(assetsDir, "en-us-ptm"))
+                .setDictionary(new File(assetsDir, "cmudict-en-us.dict"))
+                .setRawLogDir(assetsDir)
+                .setKeywordThreshold(1e-45f)
+                .setBoolean("-allphone_ci", true)
+                .getRecognizer();
+        recognizer.addListener(this);
+        recognizer.addKeyphraseSearch(KWS_SEARCH, KEYPHRASE);
+    }
 }
