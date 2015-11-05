@@ -12,13 +12,10 @@
         android:layout_width="fill_parent"
         android:layout_height="60dp" />
 
-    <include
-        android:id="@+id/baothuc"
-        layout="@layout/item_clock"
-        android:layout_width="wrap_content"
+    <ListView
+        android:id="@+id/lv"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/include"
-        android:layout_marginTop="10dp" />
-
+        android:layout_marginTop="80dp"></ListView>
 
 </RelativeLayout>

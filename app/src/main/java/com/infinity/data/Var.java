@@ -49,7 +49,9 @@ public class Var {
     public static final String DISH_EXTRA = "DISH";
     public static final int DRAWABLE_LIST[] = {R.drawable.avatar, R.drawable.avatar1, R.drawable.avatar2,
             R.drawable.avatar4, R.drawable.avatar5, R.drawable.avatar3};
-    public static final String CLOCK_TIME = "clock";
+    public static final String CLOCK_TIME = "timeclock";
+    public static final String STR_INTENT = "strIntent";
+    public static final String NUMBER_INTENT = "numberIntent";
     public static final String[] nextStep = {"tiếp", "rồi sao nữa", "tiếp theo", "tiếp đi", "tiếp theo là gì",
             "xong rồi", "còn gì nữa", "còn gì nữa không", "thực hiện như thế nào", "hướng dẫn tôi tiếp", "hết chưa"};
     public static final String[] done = {"thôi", "xong rồi", "tôi biết rồi", "được rồi", "tôi biết làm rồi"};

@@ -1,9 +1,11 @@
 package com.infinity.icook;
 
 import android.app.Activity;
+import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -40,6 +42,8 @@ import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.plus.Plus;
 import com.infinity.adapter.CustomDrawerAdapter;
 import com.infinity.adapter.ImageAdapter;
+import com.infinity.clock.Entity;
+import com.infinity.clock.MyAlarmService;
 import com.infinity.data.ConnectionDetector;
 import com.infinity.data.Data;
 import com.infinity.data.Progress;
@@ -52,7 +56,6 @@ import com.infinity.model.DishItem;
 import com.infinity.model.DrawerItem;
 import com.infinity.model.MaterialItem;
 import com.infinity.model.OutputItem;
-import com.infinity.service.ClockService;
 import com.infinity.service.TextToSpeech;
 import com.infinity.volley.APIConnection;
 import com.infinity.volley.VolleyCallback;
@@ -66,6 +69,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -119,10 +123,14 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
     Mode mode;
     private ProgressDialog progressDialog;
 
+    //clock
+    List<Entity> list = new ArrayList<>();
+
     // tao enum mode cac kieu che do o man hinh chinh, Talk : noi chuyen voi AI, Browse : xem Category, Details :xem ben trong category
     private enum Mode {
         TALK, BROWSE, DETAILS
     }
+
     @Override
     public void onConnected(Bundle bundle) {
     }
@@ -245,6 +253,7 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
         recognizer.cancel();
         recognizer.shutdown();
     }
+
     private void addItemToCategoryList() {
         items.add(new CatItem(R.drawable.cat_egg, "Poultry"));
         items.add(new CatItem(R.drawable.cat_meat, "Meat"));
@@ -443,6 +452,7 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                             hideKeyboard();
                         }
                     }
+
                     private void hideKeyboard() {
                         if (chatText != null) {
                             closeKeyboard();
@@ -488,8 +498,6 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
     }
 
 
-
-
     @Override
     public void onBackPressed() {
         super.onBackPressed();
@@ -510,24 +518,6 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                 break;
             }
         }
-    }
-
-    public void startService(final String tag, int tmp) {
-        if (tmp != 0) {
-            Intent intent = (new Intent(getBaseContext(), ClockService.class));
-            intent.addCategory(tag);
-            intent.putExtra("time", tmp);
-            Log.d("TienDH", "start service");
-            stopService(intent);
-            startService(intent);
-        }
-
-    }
-
-    public void stopService(final String tag) {
-        Intent intent = (new Intent(getBaseContext(), ClockService.class));
-        intent.addCategory(tag);
-        stopService(intent);
     }
 
     public void talkTTS(final String msg) {
@@ -615,11 +605,20 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                                             long endTime = timeCurrent + t * 1000;
                                             String dateString = new SimpleDateFormat("h:mm a").format(new Date(endTime));
                                             //luu lai
-                                            SharedPreferences.Editor editor = sharedPreferences.edit();
-                                            editor.putString(Var.CLOCK_TIME, dateString);
-                                            editor.commit();
                                             //goi service
-                                            startService(ClockService.TAG, t);
+                                            SharedPreferences.Editor editor = sharedPreferences.edit();
+                                            String tmp = sharedPreferences.getString(Var.CLOCK_TIME, "");
+                                            tmp = tmp + dateString + ";";
+                                            editor.putString(Var.CLOCK_TIME, tmp);
+                                            editor.commit();
+                                            int numberIntent = sharedPreferences.getInt(Var.NUMBER_INTENT, 999);
+                                            String strIntent = sharedPreferences.getString(Var.STR_INTENT, "");
+                                            numberIntent++;
+                                            strIntent = strIntent + String.valueOf(numberIntent) + ";";
+                                            editor.putInt(Var.NUMBER_INTENT, numberIntent);
+                                            editor.putString(Var.STR_INTENT, strIntent);
+                                            editor.commit();
+                                            setAlarm(h, m, numberIntent);
                                         }
                                         break;
                                     case 6:
@@ -701,6 +700,18 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
         }
     }
 
+    public void setAlarm(int hour, int minute, int rq) {
+        Intent myIntent = new Intent(Home.this, MyAlarmService.class);
+        myIntent.putExtra("rq", rq);
+        PendingIntent pendingIntent = PendingIntent.getService(Home.this, rq, myIntent, 0);
+        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(System.currentTimeMillis());
+        calendar.add(Calendar.MINUTE, minute);
+        calendar.add(Calendar.HOUR, hour);
+        alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+    }
+
     // lay nguyen lieu theo thong tin ng dung
     private void getMat(String token, String idDish) {
         try {
@@ -721,6 +732,7 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                         TalkAndSendMess(new OutputItem("Tôi không hiểu bạn nói gì cả"));
                     }
                 }
+
                 @Override
                 public void onError(VolleyError error) {
                     Toast.makeText(getApplicationContext(), "Xảy ra lỗi!", Toast.LENGTH_LONG).show();
@@ -730,6 +742,7 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
             e.printStackTrace();
         }
     }
+
     //lay mon an thong minh
     private void smartConsult(String token) {
         try {
