@@ -170,7 +170,7 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                 .addScope(new Scope(Scopes.EMAIL))
                 .build();
 
-        loadRecording();
+//        loadRecording();
 
         sharedPreferences = getSharedPreferences(Var.MY_PREFERENCES, Context.MODE_PRIVATE);
         accessToken = sharedPreferences.getString(Var.ACCESS_TOKEN, "");
@@ -532,7 +532,31 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
     }
 
     private void chat(String text) {
-        if (!Progress.CheckList(text, Var.nextStep)) {
+        if (Progress.CheckList(text, Var.nextStep)) {
+            if (Data.stepInstruction != null) {
+                //doc tiep
+                Log.d("TienDH", "Steps: " + Data.stepInstruction.size());
+                if (steps >= Data.stepInstruction.size() - 1) {
+                    String s = "Món ăn đã hoàn thành rồi, chúc bạn ngon miệng";
+                    TalkAndSendMess(new OutputItem(s));
+                    steps = 0;
+                    Data.repeat = s;
+                    Data.stepInstruction = null;
+                } else {
+                    steps++;
+                    String s = Data.stepInstruction.get(steps);
+                    Data.repeat = s;
+                    TalkAndSendMess(new OutputItem(s));
+                }
+            } else {
+                TalkAndSendMess(new OutputItem("Ý bạn là chuẩn bị gì cơ"));
+            }
+        } else if (Progress.CheckList(text, Var.repeat)) {
+            //nhac lai
+            if (Data.repeat != null && !Data.repeat.equals("")) {
+                TalkAndSendMess(new OutputItem(Data.repeat));
+            }
+        } else {
             if (ConnectionDetector.isNetworkConnected(getApplicationContext())) {
                 try {
                     APIConnection.getChat(this, text, new VolleyCallback() {
@@ -564,6 +588,8 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                                         ArrayList<String> stepsTalk = Progress.tokenizer(steps);
                                         Data.stepInstruction = (ArrayList<String>) stepsTalk.clone();
                                         result = stepsTalk.get(0);
+                                        //luu lai buoc trc
+                                        Data.repeat = result;
                                         Log.d("TienDH", "thuc hien: " + result);
                                         if (!result.equals("") && result != null) {
                                             TalkAndSendMess(new OutputItem(result));
@@ -685,19 +711,9 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                 //show thog bao
                 Toast.makeText(getApplicationContext(), "Vui lòng kết nối internet!", Toast.LENGTH_LONG).show();
             }
-        } else {
-            Log.d("TienDH", "Steps: " + Data.stepInstruction.size());
-            if (steps >= Data.stepInstruction.size() - 1) {
-                String s = "Món ăn đã hoàn thành rồi, chúc bạn ngon miệng";
-                TalkAndSendMess(new OutputItem(s));
-                steps = 0;
-                Data.stepInstruction = null;
-            } else {
-                steps++;
-                String s = Data.stepInstruction.get(steps);
-                TalkAndSendMess(new OutputItem(s));
-            }
         }
+
+
     }
 
     public void setAlarm(int hour, int minute, int rq) {
@@ -784,7 +800,7 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
     //mo google voice
     private void startVoiceRecognitionActivity() {
         //tat lang nghe de gianh mic cho google voice
-        recognizer.stop();
+//        recognizer.stop();
         try {
             Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
             intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
@@ -819,8 +835,8 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
         }
         super.onActivityResult(requestCode, resultCode, data);
         //mo lai lang nghe
-        if (KWS_SEARCH.equals(KWS_SEARCH))
-            recognizer.startListening(KWS_SEARCH);
+//        if (KWS_SEARCH.equals(KWS_SEARCH))
+//            recognizer.startListening(KWS_SEARCH);
     }
 
     //listening icook

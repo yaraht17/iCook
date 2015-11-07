@@ -30,5 +30,6 @@
     <string name="icon_microphone">&#xf130;</string>
     <string name="title_activity_clock">ClockActivity</string>
     <string name="title_activity_sqlash_screen">SqlashScreen</string>
+    <string name="title_activity_add_user">AddUser</string>
 
 </resources>

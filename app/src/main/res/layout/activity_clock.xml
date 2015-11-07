@@ -13,9 +13,10 @@
         android:layout_height="60dp" />
 
     <ListView
+        android:layout_below="@+id/include"
         android:id="@+id/lv"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="80dp"></ListView>
+        android:layout_margin="5dp" />
 
 </RelativeLayout>

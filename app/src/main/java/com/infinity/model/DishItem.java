@@ -29,6 +29,11 @@ public class DishItem implements Serializable {
         this.materials = materials;
     }
 
+    public DishItem(int id, String dishName) {
+        this.id = id;
+        this.name = dishName;
+    }
+
     public String getIntroduce() {
         return introduce;
     }
