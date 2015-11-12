@@ -14,7 +14,7 @@ import java.net.URLEncoder;
 
 public class TextToSpeech {
 
-    public void stopSpeakVi() {
+    public static void stopSpeakVi() {
         mediaPlayer.stop();
     }
 
@@ -32,8 +32,15 @@ public class TextToSpeech {
     public static void speakVi(final String filePath) {
         initMediaPlayer(filePath);
         mediaPlayer.start();
-
+        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                stopSpeakVi();
+                Log.d("TienDH", "tts complete");
+            }
+        });
     }
+
 
     public static void downloadFile(final String URL, final String filePath) {
         try {

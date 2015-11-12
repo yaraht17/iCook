@@ -23,6 +23,7 @@ import com.infinity.data.ConnectionDetector;
 import com.infinity.data.Data;
 import com.infinity.data.Progress;
 import com.infinity.data.Var;
+import com.infinity.model.PersonalItem;
 import com.infinity.model.UserItem;
 import com.infinity.volley.APIConnection;
 import com.infinity.volley.VolleyCallback;
@@ -102,11 +103,14 @@ public class ManagerUser extends AppCompatActivity implements View.OnClickListen
                 iconWeight = (TextView) dialog.findViewById(R.id.iconWeight);
 //                DatePicker birthdate = (DatePicker) dialog.findViewById(R.id.dpBirthdate);
 
-                final EditText txtName, txtBirthdate, txtHeight, txtWeight;
+                final EditText txtName, txtBirthdate, txtHeight, txtWeight, txtLike, txtDislike, txtSick;
                 txtName = (EditText) dialog.findViewById(R.id.txtName);
                 txtBirthdate = (EditText) dialog.findViewById(R.id.txtBirthdate);
                 txtHeight = (EditText) dialog.findViewById(R.id.txtHeight);
                 txtWeight = (EditText) dialog.findViewById(R.id.txtWeight);
+                txtLike = (EditText) dialog.findViewById(R.id.txtLike);
+                txtDislike = (EditText) dialog.findViewById(R.id.txtDisLike);
+                txtSick = (EditText) dialog.findViewById(R.id.txtSickHistory);
 
                 iconName.setTypeface(font_awesome);
                 iconBirthdate.setTypeface(font_awesome);
@@ -139,24 +143,27 @@ public class ManagerUser extends AppCompatActivity implements View.OnClickListen
                             }
                         }
                         if (txtName.getText().equals("") || txtHeight.getText().equals("")
-                                || txtBirthdate.getText().equals("")
-                                || txtWeight.getText().equals("")
-                                || checkSex == 2) {
+                                || txtBirthdate.getText().equals("") || txtWeight.getText().equals("")
+                                || checkSex == 2 || txtLike.getText().equals("")
+                                || txtDislike.getText().equals("")
+                                || txtSick.getText().equals("")) {
                             Toast.makeText(getApplicationContext(), "Vui lòng điền đầy đủ thông tin",
                                     Toast.LENGTH_SHORT).show();
                         } else {
                             String date = txtBirthdate.getText().toString();
                             String dateString = "";
                             try {
-                                dateString = Progress.formatDate(date, "dd/mm/yyyy", "yyyy:mm:dd");
+                                dateString = Progress.formatDate(date, "dd/mm/yyyy", "yyyy-mm-dd");
                                 Log.d("TienDH", "date :" + dateString);
                             } catch (ParseException e) {
                                 e.printStackTrace();
                             }
+                            PersonalItem personal = new PersonalItem(txtLike.getText().toString(), txtDislike.getText().toString(),
+                                    txtSick.getText().toString());
                             UserItem user = new UserItem(txtName.getText().toString(), dateString,
                                     Double.parseDouble(txtHeight.getText().toString()),
                                     Double.parseDouble(txtWeight.getText().toString()),
-                                    checkSex);
+                                    checkSex, personal);
                             usersAdapter.add(user);
                             Log.d("TienDH", "Add user - token :" + token);
                             if (ConnectionDetector.isNetworkConnected(getApplicationContext())) {
@@ -168,7 +175,7 @@ public class ManagerUser extends AppCompatActivity implements View.OnClickListen
                                             Log.d("TienDH", "add user: " + response);
                                             try {
                                                 int code = response.getInt("code");
-                                                if (code == 201) {
+                                                if (code == 201 || code == 200) {
                                                     Toast.makeText(getApplicationContext(), "Thêm thành công",
                                                             Toast.LENGTH_SHORT).show();
                                                 }
@@ -224,7 +231,6 @@ public class ManagerUser extends AppCompatActivity implements View.OnClickListen
     }
 
 
-
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -237,6 +243,7 @@ public class ManagerUser extends AppCompatActivity implements View.OnClickListen
             pDialog = null;
         }
     }
+
     @Override
     public void onClick(View v) {
         switch (v.getId()) {

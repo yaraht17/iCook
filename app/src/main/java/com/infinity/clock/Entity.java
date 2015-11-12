@@ -1,8 +1,5 @@
 package com.infinity.clock;
 
-/**
- * Created by Administrator on 11/4/2015.
- */
 public class Entity {
     private String time;
     private Boolean state;

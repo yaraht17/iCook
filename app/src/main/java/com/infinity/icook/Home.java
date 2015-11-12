@@ -7,11 +7,13 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
@@ -42,7 +44,10 @@ import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.plus.Plus;
 import com.infinity.adapter.CustomDrawerAdapter;
 import com.infinity.adapter.ImageAdapter;
+import com.infinity.clock.BootReceiver;
 import com.infinity.clock.Entity;
+import com.infinity.clock.HourlyService;
+import com.infinity.clock.MoreInfoActivity;
 import com.infinity.clock.MyAlarmService;
 import com.infinity.data.ConnectionDetector;
 import com.infinity.data.Data;
@@ -114,6 +119,7 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
     private SharedPreferences sharedPreferences;
     private String accessToken;
     private String idEmail;
+    private boolean activeVoice;
 
     private int steps = 0;
     private boolean mIsResolving = false;
@@ -170,11 +176,14 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                 .addScope(new Scope(Scopes.EMAIL))
                 .build();
 
-//        loadRecording();
 
         sharedPreferences = getSharedPreferences(Var.MY_PREFERENCES, Context.MODE_PRIVATE);
         accessToken = sharedPreferences.getString(Var.ACCESS_TOKEN, "");
+        activeVoice = sharedPreferences.getBoolean(Var.ACTIVE_VOICE, false);
         idEmail = sharedPreferences.getString(Var.USER_EMAIL, "");
+        loadRecording();
+
+
         DisplayMetrics displaymetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
         screenHeight = displaymetrics.heightPixels;
@@ -233,12 +242,36 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
         barbtn.setOnClickListener(this);
         iCookBtnLayout.setOnClickListener(this);
         btnSend.setOnClickListener(this);
+
+
+        boolean run = sharedPreferences.getBoolean(Var.RUN, false);
+        if (run == false) {
+            setAlarmHourly();
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putBoolean(Var.RUN, true);
+            editor.commit();
+        }
+
     }
 
     @Override
     public void onStart() {
         super.onStart();
         mGoogleApiClient.connect();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        sharedPreferences = getSharedPreferences(Var.MY_PREFERENCES, Context.MODE_PRIVATE);
+        activeVoice = sharedPreferences.getBoolean(Var.ACTIVE_VOICE, false);
+//        if (activeVoice) {
+//            Log.d("TienDH", "onResume - open voice");
+//            switchSearch(KWS_SEARCH);
+//        } else {
+//            recognizer.stop();
+//        }
+
     }
 
     @Override
@@ -250,8 +283,11 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
     @Override
     public void onDestroy() {
         super.onDestroy();
-        recognizer.cancel();
-        recognizer.shutdown();
+        if (recognizer != null) {
+            recognizer.stop();
+            recognizer.cancel();
+            recognizer.shutdown();
+        }
     }
 
     private void addItemToCategoryList() {
@@ -292,7 +328,9 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
         ArrayList list = new ArrayList();
         list.add(new DrawerItem(idEmail, "", R.drawable.ava));
         list.add(new DrawerItem("Thông tin gia đình", R.string.users));
-        list.add(new DrawerItem("Báo thức", R.string.settings_icon));
+        list.add(new DrawerItem("Theo dõi ăn uống", R.string.icon_history));
+        list.add(new DrawerItem("Báo thức", R.string.icon_clock));
+        list.add(new DrawerItem("Cài đặt", R.string.settings_icon));
         list.add(new DrawerItem("Đăng xuất", R.string.logout_icon));
         return list;
     }
@@ -304,18 +342,33 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
             Intent intent;
             switch (position) {
                 case 0:
+                    //avt
                     break;
                 case 1:
+                    //thong tin gđ
                     intent = new Intent(getApplicationContext(), ManagerUser.class);
                     mDrawerLayout.closeDrawer(Gravity.LEFT);
                     startActivity(intent);
                     break;
                 case 2:
-                    intent = new Intent(getApplicationContext(), ClockActivity.class);
+                    //theo doi an uong
+                    intent = new Intent(getApplicationContext(), MoreInfoActivity.class);
                     mDrawerLayout.closeDrawer(Gravity.LEFT);
                     startActivity(intent);
                     break;
                 case 3:
+                    //Báo thức
+                    intent = new Intent(getApplicationContext(), ClockActivity.class);
+                    mDrawerLayout.closeDrawer(Gravity.LEFT);
+                    startActivity(intent);
+                    break;
+                case 4:
+                    // cài đặt
+                    intent = new Intent(getApplicationContext(), SettingActivity.class);
+                    mDrawerLayout.closeDrawer(Gravity.LEFT);
+                    startActivity(intent);
+                    break;
+                case 5:
                     //logout
                     createDialog();
                     break;
@@ -388,6 +441,8 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                                 mode = Mode.BROWSE; // set mode = browse roi chay ham switchMode() de tro ve mode browse
                                 Log.d("TienDH", "mode click barbtn:  " + mode.toString());
                                 CloseDetails();
+                                fragmentManager.popBackStack();
+                                fragmentTransaction = null;
                                 break;
                             case DETAILS:  // truong hop bam nut back khi dang o fragment xem category
                                 mode = Mode.BROWSE;
@@ -521,14 +576,48 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
     }
 
     public void talkTTS(final String msg) {
+//        final Thread thread = new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                if (!msg.equals("")) {
+//                    TextToSpeech.speakTTS(msg);
+//
+//                }
+//            }
+//
+//        });
+//        thread.start();
+
         new Thread(new Runnable() {
             @Override
             public void run() {
-                if (!msg.equals("")) {
-                    TextToSpeech.speakTTS(msg);
+                Thread thread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (!msg.equals("")) {
+                            TextToSpeech.speakTTS(msg);
+                        }
+                    }
+
+                });
+                thread.start();
+
+                try {
+                    thread.join();
+
+                    if (activeVoice) {
+
+                        Log.d("TienDH", "onComplete Media play");
+                        switchSearch(KWS_SEARCH);
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
+
+
             }
         }).start();
+
     }
 
     private void chat(String text) {
@@ -692,6 +781,27 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                                             TalkAndSendMess(new OutputItem("Ý bạn là chuẩn bị gì cơ"));
                                         }
                                         Data.recomendDish = null;
+                                        break;
+                                    case 8:
+                                        String nameMat = response.getString("result");
+                                        String price = response.getString("data");
+                                        String[] priceSplit = price.split("-");
+                                        if (priceSplit.length >= 2) {
+                                            result = nameMat + " giá " + priceSplit[0] + " " + priceSplit[1];
+                                        } else {
+                                            result = nameMat + " giá " + price;
+                                        }
+                                        TalkAndSendMess(new OutputItem(result));
+                                        break;
+                                    case 9:
+                                        break;
+
+                                    case 10:
+
+
+                                        break;
+                                    default:
+                                        break;
                                 }
 
                             } catch (JSONException e) {
@@ -712,6 +822,31 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                 Toast.makeText(getApplicationContext(), "Vui lòng kết nối internet!", Toast.LENGTH_LONG).show();
             }
         }
+
+
+    }
+
+
+    public void setAlarmHourly() {
+
+        //set Reboot
+        ComponentName receiver = new ComponentName(this, BootReceiver.class);
+        PackageManager pm = this.getPackageManager();
+        pm.setComponentEnabledSetting(receiver,
+                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                PackageManager.DONT_KILL_APP);
+
+        AlarmManager alarmMgr = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(this, HourlyService.class);
+        PendingIntent alarmIntent = PendingIntent.getService(this, 0, intent, 0);
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, 22);
+        calendar.set(Calendar.MINUTE, 00);
+        calendar.set(Calendar.SECOND, 00);
+
+        alarmMgr.setInexactRepeating(AlarmManager.RTC, calendar.getTimeInMillis(),
+                AlarmManager.INTERVAL_DAY, alarmIntent);
 
 
     }
@@ -800,7 +935,10 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
     //mo google voice
     private void startVoiceRecognitionActivity() {
         //tat lang nghe de gianh mic cho google voice
-//        recognizer.stop();
+        if (activeVoice) {
+            Log.d("TienDH", "stop voice");
+            recognizer.stop();
+        }
         try {
             Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
             intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
@@ -835,8 +973,12 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
         }
         super.onActivityResult(requestCode, resultCode, data);
         //mo lai lang nghe
-//        if (KWS_SEARCH.equals(KWS_SEARCH))
-//            recognizer.startListening(KWS_SEARCH);
+//        if (activeVoice) {
+//            Log.d("TienDH", "open voice again");
+//            switchSearch(KWS_SEARCH);
+//        }
+
+
     }
 
     //listening icook
@@ -844,17 +986,18 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
     private static final String KWS_SEARCH = "wakeup";
 
     /* Keyword we are looking for to activate menu */
-    private static final String KEYPHRASE = "open voice";
+    private static final String KEYPHRASE = "open i cook";
 
     private SpeechRecognizer recognizer;
 
+    private File assetDir;
     private void loadRecording() {
         new AsyncTask<Void, Void, Exception>() {
             @Override
             protected Exception doInBackground(Void... params) {
                 try {
                     Assets assets = new Assets(Home.this);
-                    File assetDir = assets.syncAssets();
+                    assetDir = assets.syncAssets();
                     setupRecognizer(assetDir);
                 } catch (IOException e) {
                     return e;
@@ -867,7 +1010,12 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                 if (result != null) {
                     Toast.makeText(getApplicationContext(), "Recording failed", Toast.LENGTH_SHORT).show();
                 } else {
-                    switchSearch(KWS_SEARCH);
+//                    switchSearch(KWS_SEARCH);
+                    if (activeVoice) {
+                        Log.d("TienDH", "open voice");
+                        switchSearch(KWS_SEARCH);
+                    }
+                    Toast.makeText(getApplicationContext(), "Recording ok", Toast.LENGTH_SHORT).show();
                 }
             }
         }.execute();
@@ -892,6 +1040,18 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
         if (text.equals(KEYPHRASE)) {
             switchSearch(KWS_SEARCH);
 //            Toast.makeText(this, "Ok google demo", Toast.LENGTH_SHORT).show();
+            switch (mode) {
+                case BROWSE:
+                    mode = Mode.TALK;
+                    talkTTS("tôi có thể giúp gì cho bạn");
+                    break;
+                case TALK:
+                    startVoiceRecognitionActivity();
+
+                    mode = Mode.TALK;
+                    break;
+            }
+            switchMode();
         }
     }
 
@@ -899,21 +1059,18 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
     public void onResult(Hypothesis hypothesis) {
         if (hypothesis != null) {
             String text = hypothesis.getHypstr();
-            Toast.makeText(getApplicationContext(), text + "Turn on", Toast.LENGTH_SHORT).show();
-            switch (mode) {
-                case BROWSE:
-                    mode = Mode.TALK;
-                    talkTTS("tôi có thể giúp gì cho bạn");
-                    break;
-                case TALK:
-
-                    startVoiceRecognitionActivity();
-//                    loadRecording();
-//                    recognizer.startListening(KWS_SEARCH, 10000);
-                    mode = Mode.TALK;
-                    break;
-            }
-            switchMode();
+//            Toast.makeText(getApplicationContext(), text + "Turn on", Toast.LENGTH_SHORT).show();
+//            switch (mode) {
+//                case BROWSE:
+//                    mode = Mode.TALK;
+//                    talkTTS("tôi có thể giúp gì cho bạn");
+//                    break;
+//                case TALK:
+//                    startVoiceRecognitionActivity();
+//                    mode = Mode.TALK;
+//                    break;
+//            }
+//            switchMode();
         }
     }
 
@@ -932,9 +1089,16 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
         if (searchName.equals(KWS_SEARCH))
             recognizer.startListening(searchName);
         else
-            recognizer.startListening(searchName, 1000);
+            recognizer.startListening(searchName, 5000);
     }
 
+    private void switchSearch2(String searchName) {
+        // If we are not spotting, start listening with timeout (10000 ms or 10 seconds).
+        if (searchName.equals(KWS_SEARCH))
+            recognizer.startListening(searchName);
+        else
+            recognizer.startListening(searchName, 5000);
+    }
     private void setupRecognizer(File assetsDir) throws IOException {
         recognizer = defaultSetup()
                 .setAcousticModel(new File(assetsDir, "en-us-ptm"))

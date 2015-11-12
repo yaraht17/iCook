@@ -139,6 +139,12 @@ public class APIConnection {
         jsonBody.put(Var.USER_HEIGHT, user.getHeight());
         jsonBody.put(Var.USER_WEIGHT, user.getWeight());
         jsonBody.put(Var.ACCESS_TOKEN, token);
+        JSONObject personal = new JSONObject();
+        personal.put(Var.USER_PERSONAL_LIKE, user.getPersonal().getLike());
+        personal.put(Var.USER_PERSONAL_DISLIKE, user.getPersonal().getDislike());
+        personal.put(Var.USER_PERSONAL_SICK, user.getPersonal().getSick());
+        jsonBody.put(Var.USER_PERSONAL, personal);
+
         Log.d("TienDH", "json send: " + jsonBody.toString());
         JsonObjectRequest jsObjRequest = new JsonObjectRequest
                 (Request.Method.POST, Var.API_ADD_USER, jsonBody, new Response.Listener<JSONObject>() {
@@ -264,6 +270,11 @@ public class APIConnection {
                 int sex = object.getInt(Var.USER_SEX);
                 double height = object.getDouble(Var.USER_HEIGHT);
                 double weight = object.getDouble(Var.USER_WEIGHT);
+//                JSONObject perJSON  = object.getJSONObject(Var.USER_PERSONAL);
+//                String like = perJSON.getString(Var.USER_PERSONAL_LIKE);
+//                String dislike = perJSON.getString(Var.USER_PERSONAL_DISLIKE);
+//                String sick = perJSON.getString(Var.USER_PERSONAL_SICK);
+//                PersonalItem personal = new PersonalItem(like, dislike,sick);
 
                 UserItem user = new UserItem(id, name, birthdate, height, weight, sex);
                 list.add(user);
@@ -344,6 +355,7 @@ public class APIConnection {
         }
         return dish;
     }
+
     public static ArrayList<MaterialItem> parseMaterialList(JSONArray jsonArray) {
         ArrayList<MaterialItem> list = new ArrayList<>();
         for (int i = 0; i < jsonArray.length(); i++) {

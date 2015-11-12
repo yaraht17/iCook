@@ -33,18 +33,11 @@
             android:gravity="center">
 
             <Button
-                android:layout_width="100dp"
-                android:layout_height="50dp"
-                android:layout_margin="10dp"
-                android:text="REPEAT"
-                android:textSize="20sp" />
-
-            <Button
                 android:id="@+id/btnExit"
                 android:layout_width="100dp"
                 android:layout_height="50dp"
                 android:layout_margin="10dp"
-                android:text="EXIT"
+                android:text="Thoát"
                 android:textSize="20sp" />
 
         </LinearLayout>

@@ -43,8 +43,10 @@ public class Var {
     public static final String USER_HEIGHT = "height";
     public static final String USER_WEIGHT = "weight";
     public static final String USER_EMAIL = "email";
-
-
+    public static final String USER_PERSONAL = "personal";
+    public static final String USER_PERSONAL_LIKE = "like";
+    public static final String USER_PERSONAL_DISLIKE = "dislike";
+    public static final String USER_PERSONAL_SICK = "sick";
     //key truyen extra
     public static final String DISH_EXTRA = "DISH";
     public static final int DRAWABLE_LIST[] = {R.drawable.avatar, R.drawable.avatar1, R.drawable.avatar2,
@@ -52,10 +54,13 @@ public class Var {
     public static final String CLOCK_TIME = "timeclock";
     public static final String STR_INTENT = "strIntent";
     public static final String NUMBER_INTENT = "numberIntent";
+    public static final String RUN = "run";
+
     public static final String[] nextStep = {"tiếp", "rồi sao nữa", "tiếp theo", "tiếp đi", "tiếp theo là gì",
             "xong rồi", "còn gì nữa", "còn gì nữa không", "thực hiện như thế nào", "hướng dẫn tôi tiếp", "hết chưa"};
     public static final String[] done = {"thôi", "xong rồi", "tôi biết rồi", "được rồi", "tôi biết làm rồi"};
 
     public static final String[] repeat = {"nhắc lại", "nhắc lại đi", "đọc lại", "đọc lại đi", "tôi chưa nghe kịp",
             "tôi chưa làm kịp", "hướng dẫn tôi lại"};
+    public static final String ACTIVE_VOICE = "ACTIVE";
 }

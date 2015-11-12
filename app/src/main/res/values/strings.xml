@@ -28,6 +28,11 @@
     <string name="icon_toggle">&#xf0c9;</string>
     <string name="icon_back">&#xf053;</string>
     <string name="icon_microphone">&#xf130;</string>
+    <string name="icon_history">&#xf1da;</string>
+    <string name="icon_clock">&#xf017;</string>
+    <string name="icon_add">&#xf067;</string>
+    <string name="icon_add_cirle">&#xf055;</string>
+
     <string name="title_activity_clock">ClockActivity</string>
     <string name="title_activity_sqlash_screen">SqlashScreen</string>
     <string name="title_activity_add_user">AddUser</string>

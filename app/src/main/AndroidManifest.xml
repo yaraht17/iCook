@@ -19,8 +19,7 @@
         <activity
             android:name=".Home"
             android:label="@string/app_name"
-            android:windowSoftInputMode="adjustResize" >
-        </activity>
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".DishDetailActivity"
             android:label="@string/title_activity_dish_detail"
@@ -61,10 +60,10 @@
         <activity
             android:name="com.infinity.clock.InfoActivity"
             android:label="iCook Alarm"
-            android:theme="@android:style/Theme.Dialog" >
-        </activity>
+            android:theme="@android:style/Theme.Dialog" />
 
         <service android:name="com.infinity.clock.MyAlarmService" />
+        <service android:name="com.infinity.clock.HourlyService" />
 
         <activity
             android:name=".AddUser"
@@ -74,6 +73,23 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.infinity.icook.ManagerUser" />
+        </activity>
+        <activity
+            android:name="com.infinity.clock.MoreInfoActivity"
+            android:label="Notification"
+            android:theme="@style/AppTheme.NoActionBar" />
+
+        <receiver
+            android:name="com.infinity.clock.BootReceiver"
+            android:enabled="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <activity
+            android:name=".SettingActivity"
+            android:theme="@style/AppTheme.NoActionBar">
         </activity>
     </application>
 
