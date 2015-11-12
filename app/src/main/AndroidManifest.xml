@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.infinity.icook" >
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="android.permission.USE_CREDENTIALS" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme" >
+        <activity
+            android:name=".Home"
+            android:label="@string/app_name"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".DishDetailActivity"
+            android:label="@string/title_activity_dish_detail"
+            android:parentActivityName=".Home"
+            android:theme="@style/AppTheme.NoActionBar" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.infinity.icook.Home" />
+        </activity>
+        <activity
+            android:name=".ManagerUser"
+            android:label="@string/title_activity_manager_user"
+            android:parentActivityName=".Home"
+            android:theme="@style/AppTheme.NoActionBar" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.infinity.icook.Home" />
+        </activity>
+        <activity
+            android:name=".ClockActivity"
+            android:label="@string/title_activity_clock"
+            android:parentActivityName=".Home"
+            android:theme="@style/AppTheme.NoActionBar" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.infinity.icook.Home" />
+        </activity>
+        <activity
+            android:name=".SqlashScreen"
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme.NoActionBar" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.infinity.clock.InfoActivity"
+            android:label="iCook Alarm"
+            android:theme="@android:style/Theme.Dialog" />
+
+        <service android:name="com.infinity.clock.MyAlarmService" />
+        <service android:name="com.infinity.clock.HourlyService" />
+
+        <activity
+            android:name=".AddUser"
+            android:label="@string/title_activity_add_user"
+            android:parentActivityName=".ManagerUser"
+            android:theme="@style/AppTheme.NoActionBar" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.infinity.icook.ManagerUser" />
+        </activity>
+        <activity
+            android:name="com.infinity.clock.MoreInfoActivity"
+            android:label="Notification"
+            android:theme="@style/AppTheme.NoActionBar" />
+
+        <receiver
+            android:name="com.infinity.clock.BootReceiver"
+            android:enabled="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <activity
+            android:name=".SettingActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
+    </application>
+
+</manifest>
