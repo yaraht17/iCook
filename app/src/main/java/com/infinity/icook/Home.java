@@ -181,8 +181,6 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
         accessToken = sharedPreferences.getString(Var.ACCESS_TOKEN, "");
         activeVoice = sharedPreferences.getBoolean(Var.ACTIVE_VOICE, false);
         idEmail = sharedPreferences.getString(Var.USER_EMAIL, "");
-        loadRecording();
-
 
         DisplayMetrics displaymetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
@@ -265,12 +263,16 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
         super.onResume();
         sharedPreferences = getSharedPreferences(Var.MY_PREFERENCES, Context.MODE_PRIVATE);
         activeVoice = sharedPreferences.getBoolean(Var.ACTIVE_VOICE, false);
-//        if (activeVoice) {
-//            Log.d("TienDH", "onResume - open voice");
-//            switchSearch(KWS_SEARCH);
-//        } else {
-//            recognizer.stop();
-//        }
+        if (activeVoice) {
+            loadRecording();
+            Log.d("TienDH", "onResume - open voice");
+            switchSearch(KWS_SEARCH);
+        } else {
+            if (recognizer != null) {
+                recognizer.stop();
+            }
+
+        }
 
     }
 
@@ -278,6 +280,16 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
     public void onStop() {
         super.onStop();
         mGoogleApiClient.disconnect();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (recognizer != null) {
+            recognizer.stop();
+            recognizer.cancel();
+            recognizer.shutdown();
+        }
     }
 
     @Override
@@ -991,34 +1003,14 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
     private SpeechRecognizer recognizer;
 
     private File assetDir;
-    private void loadRecording() {
-        new AsyncTask<Void, Void, Exception>() {
-            @Override
-            protected Exception doInBackground(Void... params) {
-                try {
-                    Assets assets = new Assets(Home.this);
-                    assetDir = assets.syncAssets();
-                    setupRecognizer(assetDir);
-                } catch (IOException e) {
-                    return e;
-                }
-                return null;
-            }
 
-            @Override
-            protected void onPostExecute(Exception result) {
-                if (result != null) {
-                    Toast.makeText(getApplicationContext(), "Recording failed", Toast.LENGTH_SHORT).show();
-                } else {
-//                    switchSearch(KWS_SEARCH);
-                    if (activeVoice) {
-                        Log.d("TienDH", "open voice");
-                        switchSearch(KWS_SEARCH);
-                    }
-                    Toast.makeText(getApplicationContext(), "Recording ok", Toast.LENGTH_SHORT).show();
-                }
-            }
-        }.execute();
+    private void loadRecording() {
+        try {
+            Assets assets = new Assets(Home.this);
+            assetDir = assets.syncAssets();
+            setupRecognizer(assetDir);
+        } catch (IOException e) {
+        }
     }
 
     @Override
@@ -1028,8 +1020,6 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
 
     @Override
     public void onEndOfSpeech() {
-        if (!recognizer.getSearchName().equals(KWS_SEARCH))
-            switchSearch(KWS_SEARCH);
     }
 
     @Override
@@ -1084,21 +1074,15 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
     }
 
     private void switchSearch(String searchName) {
-        recognizer.stop();
+        if (recognizer != null) {
+            recognizer.stop();
+        }
         // If we are not spotting, start listening with timeout (10000 ms or 10 seconds).
         if (searchName.equals(KWS_SEARCH))
             recognizer.startListening(searchName);
-        else
-            recognizer.startListening(searchName, 5000);
     }
 
-    private void switchSearch2(String searchName) {
-        // If we are not spotting, start listening with timeout (10000 ms or 10 seconds).
-        if (searchName.equals(KWS_SEARCH))
-            recognizer.startListening(searchName);
-        else
-            recognizer.startListening(searchName, 5000);
-    }
+
     private void setupRecognizer(File assetsDir) throws IOException {
         recognizer = defaultSetup()
                 .setAcousticModel(new File(assetsDir, "en-us-ptm"))
