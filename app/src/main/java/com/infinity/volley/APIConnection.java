@@ -130,6 +130,38 @@ public class APIConnection {
         queue.add(sr);
     }
 
+    public static void sendLog(Context context, String token, String data, final VolleyCallback callback) throws JSONException {
+        final JSONObject jsonBody = new JSONObject();
+        jsonBody.put("token", token);
+        jsonBody.put("data", data);
+
+        Log.d("TienDH", "json send: " + jsonBody.toString());
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest
+                (Request.Method.POST, Var.API_LOG, jsonBody, new Response.Listener<JSONObject>() {
+
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.d("TienDH", "Add user: " + response);
+                        callback.onSuccess(response);
+                    }
+                }, new Response.ErrorListener() {
+
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.d("TienDH", "Add user err: " + error.toString());
+                        callback.onError(error);
+                    }
+                }) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("Content-Type", "application/json");
+//                params.put("charset", "utf-8");
+                return params;
+            }
+        };
+        MySingleton.getInstance(context).addToRequestQueue(jsObjRequest);
+    }
     public static void addUser(Context context, final UserItem user, String token, final VolleyCallback callback) throws JSONException {
 
         final JSONObject jsonBody = new JSONObject();
@@ -166,7 +198,7 @@ public class APIConnection {
             public Map<String, String> getHeaders() throws AuthFailureError {
                 Map<String, String> params = new HashMap<String, String>();
                 params.put("Content-Type", "application/json");
-//                params.put("charset", "utf-8");
+                params.put("charset", "utf-8");
                 return params;
             }
         };
@@ -337,6 +369,31 @@ public class APIConnection {
         return list;
     }
 
+    public static ArrayList<DishItem> parseDishPrice(JSONObject response) {
+        ArrayList<DishItem> list = new ArrayList<>();
+
+        try {
+            JSONArray arrayData = response.getJSONArray("data");
+            for (int i = 0; i < arrayData.length(); i++) {
+                JSONObject object = arrayData.getJSONObject(i);
+                int id = object.getInt(Var.DISH_ID);
+                String name = object.getString(Var.DISH_NAME);
+                String introduce = object.getString(Var.DISH_INTRODUCE);
+                String image = object.getString(Var.DISH_IMAGE);
+                String instruction = object.getString(Var.DISH_INSTRUCTION);
+                int aop = object.getInt(Var.DISH_AOP);
+                ArrayList<MaterialItem> materials = APIConnection.parseMaterialList(object.getJSONArray(Var.DISH_MATERIALS));
+                int price = object.getInt("price");
+                DishItem dish = new DishItem(id, name, introduce, image, instruction, aop, materials, price);
+                Log.d("TienDH", dish.getName());
+                list.add(dish);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
     public static DishItem parseDish(JSONObject response) {
         DishItem dish = new DishItem();
         try {

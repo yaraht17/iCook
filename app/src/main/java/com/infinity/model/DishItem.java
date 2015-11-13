@@ -11,12 +11,32 @@ public class DishItem implements Serializable {
     private String instruction;
     private int aop;
     private ArrayList<MaterialItem> materials;
+    private int price;
+
+    public DishItem(int id, String name, String introduce, String image, String instruction, int aop, ArrayList<MaterialItem> materials, int price) {
+        this.id = id;
+        this.name = name;
+        this.introduce = introduce;
+        this.image = image;
+        this.instruction = instruction;
+        this.aop = aop;
+        this.materials = materials;
+        this.price = price;
+    }
 
     public DishItem(int id, String name, String image, String introduce) {
         this.id = id;
         this.name = name;
         this.image = image;
         this.introduce = introduce;
+    }
+
+    public int getPrice() {
+        return price;
+    }
+
+    public void setPrice(int price) {
+        this.price = price;
     }
 
     public DishItem(int id, String name, String introduce, String image, String instruction, int aop, ArrayList<MaterialItem> materials) {

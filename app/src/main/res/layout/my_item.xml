@@ -11,6 +11,7 @@
         android:gravity="center">
 
         <TextView
+            android:textColor="#7d7d7d"
             android:id="@+id/tvTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

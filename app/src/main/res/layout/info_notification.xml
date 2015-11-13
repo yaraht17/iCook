@@ -21,14 +21,16 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="0.2"
+            android:descendantFocusability="beforeDescendants"
+            android:focusableInTouchMode="true"
             android:gravity="center">
 
             <EditText
                 android:id="@+id/etAdd"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:gravity="center"
-                android:hint="Nhập tên món ăn" />
+                android:hint="Nhập tên món ăn"
+                android:paddingLeft="30dp" />
 
         </LinearLayout>
 

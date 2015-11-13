@@ -1,5 +1,6 @@
 package com.infinity.icook;
 
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -7,7 +8,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -22,7 +22,7 @@ import com.infinity.data.Var;
 
 import java.util.ArrayList;
 
-public class ClockActivity extends AppCompatActivity implements View.OnClickListener {
+public class ClockActivity extends Activity implements View.OnClickListener {
     private Typeface font_awesome, font_tony;
     //nav
     private Button barbtn;

@@ -51,6 +51,7 @@ import com.infinity.clock.MoreInfoActivity;
 import com.infinity.clock.MyAlarmService;
 import com.infinity.data.ConnectionDetector;
 import com.infinity.data.Data;
+import com.infinity.data.Database;
 import com.infinity.data.Progress;
 import com.infinity.data.Var;
 import com.infinity.fragment.CategoryDetails;
@@ -129,6 +130,7 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
     Mode mode;
     private ProgressDialog progressDialog;
 
+    private Database dbDish;
     //clock
     List<Entity> list = new ArrayList<>();
 
@@ -168,6 +170,7 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+        dbDish = new Database(this);
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
@@ -265,12 +268,12 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
         super.onResume();
         sharedPreferences = getSharedPreferences(Var.MY_PREFERENCES, Context.MODE_PRIVATE);
         activeVoice = sharedPreferences.getBoolean(Var.ACTIVE_VOICE, false);
-//        if (activeVoice) {
-//            Log.d("TienDH", "onResume - open voice");
-//            switchSearch(KWS_SEARCH);
-//        } else {
-//            recognizer.stop();
-//        }
+        if (!activeVoice) {
+        } else {
+            if (recognizer != null) {
+                recognizer.stop();
+            }
+        }
 
     }
 
@@ -281,8 +284,18 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        if (recognizer != null) {
+            recognizer.stop();
+
+        }
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
+        dbDish.closeDB();
         if (recognizer != null) {
             recognizer.stop();
             recognizer.cancel();
@@ -367,6 +380,7 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                     intent = new Intent(getApplicationContext(), SettingActivity.class);
                     mDrawerLayout.closeDrawer(Gravity.LEFT);
                     startActivity(intent);
+                    finish();
                     break;
                 case 5:
                     //logout
@@ -576,18 +590,6 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
     }
 
     public void talkTTS(final String msg) {
-//        final Thread thread = new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                if (!msg.equals("")) {
-//                    TextToSpeech.speakTTS(msg);
-//
-//                }
-//            }
-//
-//        });
-//        thread.start();
-
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -604,20 +606,17 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
 
                 try {
                     thread.join();
-
                     if (activeVoice) {
-
                         Log.d("TienDH", "onComplete Media play");
-                        switchSearch(KWS_SEARCH);
+                        if (recognizer != null) {
+                            switchSearch(KWS_SEARCH);
+                        }
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-
-
             }
         }).start();
-
     }
 
     private void chat(String text) {
@@ -654,6 +653,7 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                             Log.d("TienDH", "chat res: " + response);
                             // xu ly
                             String result = "";
+                            JSONArray data = null;
                             try {
                                 int type = response.getInt("type");
                                 switch (type) {
@@ -666,9 +666,11 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                                         break;
                                     case 2:
                                         steps = 0;
+                                        String dishName = response.getString("result");
+                                        dbDish.insertDish(dishName);
                                         //TAM DONE: lay ve string
                                         ArrayList<String> steps = new ArrayList<String>();
-                                        JSONArray data = response.getJSONArray("data");
+                                        data = response.getJSONArray("data");
                                         for (int i = 0; i < data.length(); i++) {
                                             String s = (String) data.get(i);
                                             steps.add(s);
@@ -688,6 +690,7 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                                         result = "";
                                         ArrayList<DishItem> dishList = APIConnection.parseDishSmart(response);
                                         for (DishItem dish : dishList) {
+                                            dbDish.insertDish(dish);
                                             result = result + dish.getName() + ", ";
                                         }
                                         if (!result.equals("") && result != null) {
@@ -742,6 +745,8 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                                             //show nguyen lieu
                                             String mess = "Bạn cần chuẩn bị ";
                                             String talk = "Bạn cần chuẩn bị ";
+                                            result = response.getString("result");
+                                            dbDish.insertDish(result);
                                             JSONArray dataMat = response.getJSONArray("data");
                                             if (dataMat != null) {
                                                 ArrayList<MaterialItem> materials = APIConnection.parseMaterialList(dataMat);
@@ -765,11 +770,15 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                                         if (Data.recomendDish != null) {
                                             String talkFinal = "";
                                             String messFinal = "";
+                                            ArrayList<MaterialItem> allMat = new ArrayList<MaterialItem>();
+
                                             for (DishItem dish : Data.recomendDish) {
-                                                OutputItem outMat = Progress.convertMatListToOutput(dish.getMaterials());
-                                                talkFinal += outMat.getTalk();
-                                                messFinal += outMat.getMess();
+                                                allMat.addAll(dish.getMaterials());
                                             }
+
+                                            OutputItem outMat = Progress.convertMatListToOutput(allMat);
+                                            talkFinal += outMat.getTalk();
+                                            messFinal += outMat.getMess();
                                             if (!messFinal.equals("") && !talkFinal.equals("")) {
                                                 talkFinal = "Bạn cần chuẩn bị " + talkFinal;
                                                 messFinal = "Bạn cần chuẩn bị " + messFinal;
@@ -780,26 +789,91 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                                         } else {
                                             TalkAndSendMess(new OutputItem("Ý bạn là chuẩn bị gì cơ"));
                                         }
-                                        Data.recomendDish = null;
+//                                        Data.recomendDish = null;
                                         break;
                                     case 8:
                                         String nameMat = response.getString("result");
-                                        String price = response.getString("data");
-                                        String[] priceSplit = price.split("-");
-                                        if (priceSplit.length >= 2) {
-                                            result = nameMat + " giá " + priceSplit[0] + " " + priceSplit[1];
-                                        } else {
-                                            result = nameMat + " giá " + price;
+                                        String price = "";
+                                        try {
+                                            price = response.getString("data");
+                                        } catch (Exception e) {
+                                            price = "";
                                         }
-                                        TalkAndSendMess(new OutputItem(result));
+                                        if (!price.equals("")) {
+                                            String[] priceSplit = price.split("-");
+                                            String talk = "";
+                                            if (priceSplit.length >= 2) {
+                                                result = nameMat + " giá " + priceSplit[0] + "/" + priceSplit[1];
+                                                if (priceSplit[1].equals("kg") || priceSplit[1].equals("Kg")) {
+                                                    talk = nameMat + " giá " + priceSplit[0] + " một " + "cân";
+                                                } else {
+                                                    talk = nameMat + " giá " + priceSplit[0] + " một " + priceSplit[1];
+                                                }
+                                            } else {
+                                                result = nameMat + " giá " + price;
+                                                talk = result;
+                                            }
+                                            TalkAndSendMess(new OutputItem(talk, result));
+                                        } else {
+                                            TalkAndSendMess(new OutputItem("tôi sẽ cập nhật giá về nguyên liệu này"));
+                                        }
                                         break;
                                     case 9:
+                                        ArrayList<DishItem> listPrice = APIConnection.parseDishPrice(response);
+                                        Data.recomendDish = (ArrayList<DishItem>) listPrice.clone();
+                                        result = "";
+                                        for (DishItem dish : listPrice) {
+                                            result += dish.getName() + " với giá " + dish.getPrice() + " đồng , ";
+                                        }
+                                        if (!result.equals("")) {
+                                            TalkAndSendMess(new OutputItem(result));
+                                        } else {
+                                            TalkAndSendMess(new OutputItem("tôi sẽ tư vấn bạn sau nhé"));
+                                        }
                                         break;
 
                                     case 10:
 
+                                        JSONObject dishObject = null;
+                                        try {
+                                            dishObject = response.getJSONObject("data");
+                                        } catch (Exception ex) {
+                                            dishObject = null;
+                                        }
+                                        if (dishObject != null) {
+                                            result = response.getString("result");
+                                            DishItem dishReplace = APIConnection.parseDish(dishObject);
+                                            dbDish.insertDish(dishReplace);
+                                            Log.d("TienDH", "món cũ: " + result);
+                                            TalkAndSendMess(new OutputItem("Bạn có thể nấu " + dishReplace.getName()));
+                                            Log.d("TienDH", "size: " + Data.recomendDish.size());
+                                            for (int i = 0; i < Data.recomendDish.size(); i++) {
+                                                if (result.equals(Data.recomendDish.get(i).getName())) {
+                                                    Data.recomendDish.set(i, dishReplace);
 
+                                                    Log.d("TienDH", "name: " + Data.recomendDish.get(i).getName());
+                                                }
+                                            }
+                                        } else {
+                                            TalkAndSendMess((new OutputItem("tôi có thể tư vấn cho bạn các món ăn")));
+                                        }
                                         break;
+
+                                    case 11:
+                                        String inedible = "";
+                                        String edible = "";
+                                        result = response.getString("result");
+                                        int aop11 = response.getInt("aop");
+                                        JSONObject dataEdi = response.getJSONObject("data");
+                                        inedible = dataEdi.getString("inedible");
+                                        edible = dataEdi.getString("edible");
+                                        if (aop11 == 0) {
+                                            TalkAndSendMess(new OutputItem("Bạn nên kiêng " + inedible));
+                                        } else if (aop11 == 1) {
+                                            TalkAndSendMess(new OutputItem("Bạn nên ăn " + edible));
+                                        } else {
+                                            TalkAndSendMess(new OutputItem("Bạn nên ăn " + edible + ". Và nên kiêng " + inedible));
+                                        }
                                     default:
                                         break;
                                 }
@@ -827,6 +901,7 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
     }
 
 
+
     public void setAlarmHourly() {
 
         //set Reboot
@@ -841,9 +916,9 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
         PendingIntent alarmIntent = PendingIntent.getService(this, 0, intent, 0);
 
         Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.HOUR_OF_DAY, 22);
-        calendar.set(Calendar.MINUTE, 00);
-        calendar.set(Calendar.SECOND, 00);
+        calendar.set(Calendar.HOUR_OF_DAY, 18);
+        calendar.set(Calendar.MINUTE, 40);
+        calendar.set(Calendar.SECOND, 0);
 
         alarmMgr.setInexactRepeating(AlarmManager.RTC, calendar.getTimeInMillis(),
                 AlarmManager.INTERVAL_DAY, alarmIntent);
@@ -873,6 +948,7 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                     String mess = "Bạn cần chuẩn bị ";
                     String talk = "Bạn cần chuẩn bị ";
                     DishItem dish = APIConnection.parseDish(response);
+                    dbDish.insertDish(dish);
                     OutputItem outMat = Progress.convertMatListToOutput(dish.getMaterials());
                     if (!outMat.getMess().equals("") && !outMat.getTalk().equals("")) {
                         talk += outMat.getTalk();
@@ -905,6 +981,7 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                     ArrayList<DishItem> listDish = APIConnection.parseDishSmart(response);
                     Data.recomendDish = (ArrayList<DishItem>) listDish.clone();
                     for (DishItem dish : listDish) {
+                        dbDish.insertDish(dish);
                         dishTalk = dishTalk + dish.getName() + ", ";
                     }
 
@@ -927,9 +1004,11 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
     }
 
     private void TalkAndSendMess(OutputItem out) {
-        ChatMessage message = new ChatMessage(true, out.getMess(), "");
+        String mess = out.getMess().toLowerCase();
+        String talk = out.getTalk().toLowerCase();
+        ChatMessage message = new ChatMessage(true, mess, "");
         chatview.sendChatMessage(message);
-        talkTTS(out.getTalk());
+        talkTTS(talk);
     }
 
     //mo google voice
@@ -937,7 +1016,9 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
         //tat lang nghe de gianh mic cho google voice
         if (activeVoice) {
             Log.d("TienDH", "stop voice");
-            recognizer.stop();
+            if (recognizer != null) {
+                recognizer.stop();
+            }
         }
         try {
             Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
@@ -972,11 +1053,6 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
             }
         }
         super.onActivityResult(requestCode, resultCode, data);
-        //mo lai lang nghe
-//        if (activeVoice) {
-//            Log.d("TienDH", "open voice again");
-//            switchSearch(KWS_SEARCH);
-//        }
 
 
     }
@@ -1013,9 +1089,11 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
 //                    switchSearch(KWS_SEARCH);
                     if (activeVoice) {
                         Log.d("TienDH", "open voice");
-                        switchSearch(KWS_SEARCH);
+                        if (recognizer != null) {
+                            switchSearch(KWS_SEARCH);
+                        }
                     }
-                    Toast.makeText(getApplicationContext(), "Recording ok", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Recording", Toast.LENGTH_SHORT).show();
                 }
             }
         }.execute();
@@ -1029,7 +1107,9 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
     @Override
     public void onEndOfSpeech() {
         if (!recognizer.getSearchName().equals(KWS_SEARCH))
-            switchSearch(KWS_SEARCH);
+            if (recognizer != null) {
+                switchSearch(KWS_SEARCH);
+            }
     }
 
     @Override
@@ -1038,8 +1118,9 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
             return;
         String text = hypothesis.getHypstr();
         if (text.equals(KEYPHRASE)) {
-            switchSearch(KWS_SEARCH);
-//            Toast.makeText(this, "Ok google demo", Toast.LENGTH_SHORT).show();
+            if (recognizer != null) {
+                switchSearch(KWS_SEARCH);
+            }
             switch (mode) {
                 case BROWSE:
                     mode = Mode.TALK;
@@ -1059,18 +1140,6 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
     public void onResult(Hypothesis hypothesis) {
         if (hypothesis != null) {
             String text = hypothesis.getHypstr();
-//            Toast.makeText(getApplicationContext(), text + "Turn on", Toast.LENGTH_SHORT).show();
-//            switch (mode) {
-//                case BROWSE:
-//                    mode = Mode.TALK;
-//                    talkTTS("tôi có thể giúp gì cho bạn");
-//                    break;
-//                case TALK:
-//                    startVoiceRecognitionActivity();
-//                    mode = Mode.TALK;
-//                    break;
-//            }
-//            switchMode();
         }
     }
 
@@ -1080,7 +1149,9 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
 
     @Override
     public void onTimeout() {
-        switchSearch(KWS_SEARCH);
+        if (recognizer != null) {
+            switchSearch(KWS_SEARCH);
+        }
     }
 
     private void switchSearch(String searchName) {
@@ -1092,13 +1163,7 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
             recognizer.startListening(searchName, 5000);
     }
 
-    private void switchSearch2(String searchName) {
-        // If we are not spotting, start listening with timeout (10000 ms or 10 seconds).
-        if (searchName.equals(KWS_SEARCH))
-            recognizer.startListening(searchName);
-        else
-            recognizer.startListening(searchName, 5000);
-    }
+
     private void setupRecognizer(File assetsDir) throws IOException {
         recognizer = defaultSetup()
                 .setAcousticModel(new File(assetsDir, "en-us-ptm"))

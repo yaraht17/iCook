@@ -1,5 +1,6 @@
 package com.infinity.icook;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -9,7 +10,6 @@ import android.content.pm.ActivityInfo;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
@@ -34,7 +34,7 @@ import com.infinity.volley.VolleyCallback;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class SqlashScreen extends AppCompatActivity implements
+public class SqlashScreen extends Activity implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         View.OnClickListener {

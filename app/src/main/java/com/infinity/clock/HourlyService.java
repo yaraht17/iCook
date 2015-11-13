@@ -37,7 +37,7 @@ public class HourlyService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        creatNotification(getApplicationContext(), "iCook", "Nhắc Nhở", "Cập nhật");
+        creatNotification(getApplicationContext(), "iCook", "Theo dõi ăn uống", "Cập nhật");
         return START_STICKY;
     }
 

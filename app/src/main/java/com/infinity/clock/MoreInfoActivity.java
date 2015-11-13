@@ -1,23 +1,32 @@
 package com.infinity.clock;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.android.volley.VolleyError;
+import com.infinity.data.Database;
+import com.infinity.data.Var;
 import com.infinity.icook.R;
+import com.infinity.volley.APIConnection;
+import com.infinity.volley.VolleyCallback;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MoreInfoActivity extends Activity implements View.OnClickListener, AdapterView.OnItemClickListener {
+public class MoreInfoActivity extends Activity implements View.OnClickListener {
     //nav
     private Button barbtn;
     private TextView NavTitle;
@@ -28,11 +37,16 @@ public class MoreInfoActivity extends Activity implements View.OnClickListener, 
     ArrayList<Entity> arr = new ArrayList<Entity>();
     MyAdapterInfo adapter = null;
     private Typeface font_awesome, font_tony;
-
+    private SharedPreferences sharedPreferences;
+    private String accessToken;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.info_notification);
+
+        sharedPreferences = getSharedPreferences(Var.MY_PREFERENCES, Context.MODE_PRIVATE);
+        accessToken = sharedPreferences.getString(Var.ACCESS_TOKEN, "");
+
         Log.d("key", "c");
         font_awesome = Typeface.createFromAsset(getAssets(), "fontawesome-webfont.ttf");
         font_tony = Typeface.createFromAsset(this.getAssets(), "uvf-slimtony.ttf");
@@ -53,11 +67,11 @@ public class MoreInfoActivity extends Activity implements View.OnClickListener, 
         btnSent.setTypeface(font_tony);
         btnSent.setOnClickListener(this);
         arr = new ArrayList<>();
-        arr.add(new Entity("Bánh mỳ", false));
-        arr.add(new Entity("Cocacola", true));
+        Database dbDish = new Database(this);
+        arr = dbDish.getListToday();
         adapter = new MyAdapterInfo(this, R.layout.my_item2, arr);
         lv.setAdapter(adapter);
-        lv.setOnItemClickListener(this);
+//        lv.setOnItemClickListener(this);
     }
 
     @Override
@@ -75,38 +89,57 @@ public class MoreInfoActivity extends Activity implements View.OnClickListener, 
                 break;
             case R.id.imAdd:
                 String text = etAdd.getText().toString();
+                if (text.equals("") || text == null) return;
                 Entity tmp = new Entity(text, true);
                 arr.add(0, tmp);
                 adapter.notifyDataSetChanged();
+
                 etAdd.setText("");
                 break;
             case R.id.btnSent:
                 List<String> list = new ArrayList<>();
-                for (Entity i : arr) {
+
+                for (Entity i : adapter.getCheckBox()) {
                     if (i.getState()) {
                         list.add(i.getTime());
                     }
                 }
-                // tra ve list
-                Log.d("TienDH", " size : " + list.size());
+                Log.d("TienDH", "Sent " + list.size());
+                if (list.size() != 0) {
+                    String data = "";
+                    for (int i = 0; i < list.size() - 1; i++) {
+                        data = data + list.get(i) + ", ";
+                    }
+                    data = data + list.get(list.size() - 1);
+                    Log.d("TienDH", "gửi api " + data);
+                    try {
+                        APIConnection.sendLog(this, accessToken, data, new VolleyCallback() {
+                            @Override
+                            public void onSuccess(JSONObject response) {
+                                try {
+                                    int code = response.getInt("code");
+                                    if (code == 200) {
+                                        Toast.makeText(getApplicationContext(), "Đã lưu lại lịch sử!", Toast.LENGTH_SHORT).show();
+                                    }
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+
+                            @Override
+                            public void onError(VolleyError error) {
+                                Toast.makeText(getApplicationContext(), "Xảy ra lỗi!", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
                 break;
             default:
                 break;
         }
 
-    }
-
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        Log.d("TienDH", "Item click");
-        CheckBox cb = (CheckBox) view.findViewById(R.id.cb);
-        boolean check = cb.isChecked();
-        if (check == true) {
-            arr.get(position).setState(false);
-        } else {
-            arr.get(position).setState(true);
-        }
-        adapter.notifyDataSetChanged();
     }
 
 

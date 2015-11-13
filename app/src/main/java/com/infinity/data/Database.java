@@ -6,25 +6,28 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
-import android.widget.Toast;
 
+import com.infinity.clock.Entity;
 import com.infinity.model.DishItem;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class Database extends SQLiteOpenHelper {
 
-    public static final String DATABASE_NAME = "iCookDB";
-    public static final String TABLE_NAME = "tbl_dish";
-    public static final int verson = 1;
+    public static final String DATABASE_NAME = "ICOOK";
+    public static final String TABLE_NAME = "tbl_dishlog";
+    public static final int verson = 2;
     public static final String TAG = "TienDH";
 
     public static final String CL_ID = "ID";
     public static final String CL_DISHNAME = "NAME";
-
+    public static final String CL_DATE = "DATE";
     public SQLiteDatabase mSQLitedb;
 
     public Context mContext;
+
 
     public Database(Context context) {
         super(context, DATABASE_NAME, null, verson);
@@ -53,7 +56,7 @@ public class Database extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
 
         String createTable = "CREATE TABLE " + TABLE_NAME + "(" + CL_ID
-                + " INTEGER PRIMARY KEY AUTOINCREMENT, " + CL_DISHNAME + " TEXT);";
+                + " INTEGER PRIMARY KEY AUTOINCREMENT, " + CL_DISHNAME + " TEXT, " + CL_DATE + " DATETIME );";
 
         if (!isTableExists(db, TABLE_NAME)) {
             Log.d(null, "Oncreate " + createTable);
@@ -69,51 +72,53 @@ public class Database extends SQLiteOpenHelper {
     }
 
     /*
-     * - them mot doi tuong Friend vao trong csdl
+     * -
      */
-    public void insertDish(DishItem dish) {
+    public void insertDish(DishItem dishItem) {
+        long timeCurrent = System.currentTimeMillis();
+        String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date(timeCurrent));
+        Log.d("TienDH", "date: " + date);
 
         ContentValues values = new ContentValues();
-        values.put(CL_DISHNAME, dish.getName());
-
+        values.put(CL_DISHNAME, dishItem.getName());
+        values.put(CL_DATE, date);
         if (mSQLitedb.insert(TABLE_NAME, null, values) == -1) {
-            // Log.d("INSERT", friend.getName() + "- " + friend.getId());
-            Toast.makeText(mContext, "Add New Error", Toast.LENGTH_SHORT)
-                    .show();
+            Log.d("TienDH", "INSERT Err " + dishItem.getName());
         } else {
-            Log.d("INSERT", dish.getName());
+            Log.d("TienDH", "INSERT: " + dishItem.getName());
         }
 
     }
 
-    /*
-     * - lay toan bo ban ghi trong bang co trong csdl
-     */
-    public ArrayList<DishItem> getList(long startId, long endId) {
-
-        ArrayList<DishItem> list = new ArrayList<DishItem>();
-        Cursor cursor = mSQLitedb.query(TABLE_NAME, null, CL_ID + ">= ? AND " + CL_ID + " <= ? "
-                , new String[]{String.valueOf(startId), String.valueOf(endId)}, null,
-                null, null);
-
-        while (cursor.moveToNext()) {
-            int numberId = cursor.getColumnIndex(CL_ID);
-            int numberSender = cursor.getColumnIndex(CL_DISHNAME);
-
-            int id = cursor.getInt(numberId);
-            String dishName = cursor.getString(numberSender);
-
-            DishItem item = new DishItem(id, dishName);
-            list.add(item);
+    public void insertDish(String dishName) {
+        long timeCurrent = System.currentTimeMillis();
+        String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date(timeCurrent));
+        Log.d("TienDH", "date: " + date);
+        ContentValues values = new ContentValues();
+        values.put(CL_DISHNAME, dishName);
+        values.put(CL_DATE, date);
+        if (mSQLitedb.insert(TABLE_NAME, null, values) == -1) {
+            Log.d("TienDH", "INSERT Err " + dishName);
+        } else {
+            Log.d("TienDH", "INSERT: " + dishName);
         }
-        cursor.close();
-        return list;
+
     }
 
     //lay mon an hom nay
-    public ArrayList<DishItem> getListToday() {
-        ArrayList<DishItem> list = new ArrayList<DishItem>();
-
+    public ArrayList<Entity> getListToday() {
+        ArrayList<Entity> list = new ArrayList<Entity>();
+//        Cursor cursor = mSQLitedb.query(TABLE_NAME, null, CL_DATE + " = date('now')", null, null, null, null);
+        String sql = "SELECT * FROM " + TABLE_NAME + " ORDER BY " + CL_ID + " DESC";
+        Cursor cursor = mSQLitedb.rawQuery(sql, null);
+        Log.d("TienDH", "sql: " + sql);
+        while (cursor.moveToNext()) {
+            int CL_name = cursor.getColumnIndex(CL_DISHNAME);
+            String name = cursor.getString(CL_name);
+            Entity entity = new Entity(name, false);
+            list.add(entity);
+        }
+        cursor.close();
         return list;
     }
 

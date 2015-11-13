@@ -1,19 +1,16 @@
 package com.infinity.icook;
 
-import android.app.Dialog;
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,21 +18,17 @@ import com.android.volley.VolleyError;
 import com.infinity.adapter.UserListAdapter;
 import com.infinity.data.ConnectionDetector;
 import com.infinity.data.Data;
-import com.infinity.data.Progress;
 import com.infinity.data.Var;
-import com.infinity.model.PersonalItem;
 import com.infinity.model.UserItem;
 import com.infinity.volley.APIConnection;
 import com.infinity.volley.VolleyCallback;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
-import java.text.ParseException;
 import java.util.ArrayList;
 
-public class ManagerUser extends AppCompatActivity implements View.OnClickListener {
+public class ManagerUser extends Activity implements View.OnClickListener {
 
     private Typeface font_awesome, font_tony;
     private ListView listUser;
@@ -75,7 +68,25 @@ public class ManagerUser extends AppCompatActivity implements View.OnClickListen
         pDialog.show();
         pDialog.setCancelable(false);
         pDialog.setCanceledOnTouchOutside(false);
+//        loadUsers();
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getApplicationContext(), AddUser.class);
+                startActivity(intent);
+            }
+        });
+    }
 
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadUsers();
+    }
+
+    private void loading() {
         if (Data.usersCache != null) {
             hidePDialog();
             userItems = Data.usersCache;
@@ -84,125 +95,7 @@ public class ManagerUser extends AppCompatActivity implements View.OnClickListen
         } else {
             loadUsers();
         }
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                final Dialog dialog = new Dialog(ManagerUser.this);
-                dialog.setContentView(R.layout.dialog_add_user);
-                // Set dialog title
-                dialog.setTitle("Thêm thành viên");
-                dialog.setCancelable(false);
-                dialog.setCanceledOnTouchOutside(false);
-
-                TextView iconName, iconBirthdate, iconHeight, iconWeight;
-                iconName = (TextView) dialog.findViewById(R.id.iconName);
-                iconBirthdate = (TextView) dialog.findViewById(R.id.iconBirthdate);
-                iconHeight = (TextView) dialog.findViewById(R.id.iconHeight);
-                iconWeight = (TextView) dialog.findViewById(R.id.iconWeight);
-//                DatePicker birthdate = (DatePicker) dialog.findViewById(R.id.dpBirthdate);
-
-                final EditText txtName, txtBirthdate, txtHeight, txtWeight, txtLike, txtDislike, txtSick;
-                txtName = (EditText) dialog.findViewById(R.id.txtName);
-                txtBirthdate = (EditText) dialog.findViewById(R.id.txtBirthdate);
-                txtHeight = (EditText) dialog.findViewById(R.id.txtHeight);
-                txtWeight = (EditText) dialog.findViewById(R.id.txtWeight);
-                txtLike = (EditText) dialog.findViewById(R.id.txtLike);
-                txtDislike = (EditText) dialog.findViewById(R.id.txtDisLike);
-                txtSick = (EditText) dialog.findViewById(R.id.txtSickHistory);
-
-                iconName.setTypeface(font_awesome);
-                iconBirthdate.setTypeface(font_awesome);
-                iconHeight.setTypeface(font_awesome);
-                iconWeight.setTypeface(font_awesome);
-                dialog.show();
-                // kiem tra xem la nam hay nu
-
-
-                Button btnSave, btnCancel;
-                btnSave = (Button) dialog.findViewById(R.id.btnSave);
-                btnCancel = (Button) dialog.findViewById(R.id.btnCancel);
-                btnCancel.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        dialog.dismiss();
-                    }
-                });
-                btnSave.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        int checkSex = 2;
-                        RadioGroup radioGroup = (RadioGroup) dialog.findViewById(R.id.radio_group);
-                        int check = radioGroup.getCheckedRadioButtonId();
-                        if (check == R.id.rbtnMale) {
-                            checkSex = 1;
-                        } else {
-                            if (check == R.id.rbtnFemale) {
-                                checkSex = 0;
-                            }
-                        }
-                        if (txtName.getText().equals("") || txtHeight.getText().equals("")
-                                || txtBirthdate.getText().equals("") || txtWeight.getText().equals("")
-                                || checkSex == 2 || txtLike.getText().equals("")
-                                || txtDislike.getText().equals("")
-                                || txtSick.getText().equals("")) {
-                            Toast.makeText(getApplicationContext(), "Vui lòng điền đầy đủ thông tin",
-                                    Toast.LENGTH_SHORT).show();
-                        } else {
-                            String date = txtBirthdate.getText().toString();
-                            String dateString = "";
-                            try {
-                                dateString = Progress.formatDate(date, "dd/mm/yyyy", "yyyy-mm-dd");
-                                Log.d("TienDH", "date :" + dateString);
-                            } catch (ParseException e) {
-                                e.printStackTrace();
-                            }
-                            PersonalItem personal = new PersonalItem(txtLike.getText().toString(), txtDislike.getText().toString(),
-                                    txtSick.getText().toString());
-                            UserItem user = new UserItem(txtName.getText().toString(), dateString,
-                                    Double.parseDouble(txtHeight.getText().toString()),
-                                    Double.parseDouble(txtWeight.getText().toString()),
-                                    checkSex, personal);
-                            usersAdapter.add(user);
-                            Log.d("TienDH", "Add user - token :" + token);
-                            if (ConnectionDetector.isNetworkConnected(getApplicationContext())) {
-                                try {
-                                    APIConnection.addUser(getApplicationContext(), user, token, new VolleyCallback() {
-                                        @Override
-                                        public void onSuccess(JSONObject response) {
-                                            //check
-                                            Log.d("TienDH", "add user: " + response);
-                                            try {
-                                                int code = response.getInt("code");
-                                                if (code == 201 || code == 200) {
-                                                    Toast.makeText(getApplicationContext(), "Thêm thành công",
-                                                            Toast.LENGTH_SHORT).show();
-                                                }
-                                            } catch (JSONException e) {
-                                                e.printStackTrace();
-                                            }
-                                        }
-
-                                        @Override
-                                        public void onError(VolleyError error) {
-                                        }
-                                    });
-
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                }
-                            } else {
-                                Toast.makeText(getApplicationContext(), "Vui lòng kết nối internet!", Toast.LENGTH_LONG).show();
-                            }
-                            dialog.dismiss();
-                        }
-                    }
-                });
-            }
-        });
     }
-
     private void loadUsers() {
         if (ConnectionDetector.isNetworkConnected(getApplicationContext())) {
             try {

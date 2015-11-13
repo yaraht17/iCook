@@ -11,6 +11,7 @@
         android:gravity="center|left">
 
         <TextView
+            android:textColor="#7d7d7d"
             android:id="@+id/tv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -31,10 +32,7 @@
         <CheckBox
             android:id="@+id/cb"
             android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:checked="false"
-            android:focusable="false"
-            android:focusableInTouchMode="false" />
+            android:layout_height="50dp" />
 
     </LinearLayout>
 

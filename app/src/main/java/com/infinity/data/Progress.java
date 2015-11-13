@@ -72,6 +72,10 @@ public class Progress {
         return parsedDate;
     }
     public static ArrayList<String> tokenizer(ArrayList<String> arinput) {
+        //xu ly
+        for (int i = 0; i < arinput.size(); i++) {
+            arinput.set(i, arinput.get(i).trim());
+        }
         ArrayList<String> aroutput = new ArrayList<>();
         String soche = "";
         String thuchien = "";
@@ -162,5 +166,30 @@ public class Progress {
         if (machnho.length() > 0)
             aroutput.add(machnho);
         return aroutput;
+    }
+
+    public static ArrayList<MaterialItem> importMaterial(
+            ArrayList<MaterialItem> materials) {
+
+        ArrayList<MaterialItem> list = new ArrayList<>();
+        list.add(materials.get(0));
+        boolean kt = false;
+        for (int b = 1; b < materials.size(); b++) {
+            kt = false;
+            for (int i = 0; i < list.size(); i++) {
+                if (materials.get(b).getId() == list.get(i).getId()) {
+                    kt = true;
+                    double amount1 = Double.parseDouble(list.get(i).getAmount());
+                    double amount2 = Double.parseDouble(materials.get(b).getAmount());
+                    int total = (int) (amount1 + amount2);
+                    list.get(i).setAmount(String.valueOf(total));
+                }
+            }
+            if (!kt) {
+                list.add(materials.get(b));
+            }
+        }
+
+        return list;
     }
 }

@@ -1,17 +1,18 @@
 package com.infinity.icook;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
 import com.infinity.data.Var;
 
-public class SettingActivity extends AppCompatActivity implements View.OnClickListener {
+public class SettingActivity extends Activity implements View.OnClickListener {
     private Button btnSetting;
     private boolean active;
     private Typeface font_awesome, font_tony;
@@ -24,6 +25,8 @@ public class SettingActivity extends AppCompatActivity implements View.OnClickLi
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_setting);
+
+
         btnSetting = (Button) findViewById(R.id.btnSetting);
         font_awesome = Typeface.createFromAsset(getAssets(), "fontawesome-webfont.ttf");
         font_tony = Typeface.createFromAsset(this.getAssets(), "uvf-slimtony.ttf");
@@ -72,10 +75,21 @@ public class SettingActivity extends AppCompatActivity implements View.OnClickLi
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.barbtn:
+                Intent intent = new Intent(this, Home.class);
+                startActivity(intent);
                 finish();
+
                 break;
             default:
                 break;
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        Intent intent = new Intent(this, Home.class);
+        startActivity(intent);
+        finish();
     }
 }

@@ -22,6 +22,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginLeft="10dp"
+            android:paddingRight="5dp"
             android:orientation="vertical">
 
             <TextView
@@ -29,7 +30,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_above="@+id/statusUser"
-                android:text="LÃª XuÃ¢n TÃ¹ng"
+                android:text=""
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:textColor="#FFF"
                 android:textStyle="bold" />
@@ -39,7 +40,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
-                android:text="Ä�ang bá»‹ tiá»ƒu Ä‘Æ°á»�ng =))"
                 android:textColor="#FFF" />
         </RelativeLayout>
 

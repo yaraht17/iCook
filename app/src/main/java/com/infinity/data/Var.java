@@ -6,11 +6,12 @@ public class Var {
 
     public static final String MY_PREFERENCES = "PRE_LOGIN";
     public static final String ACCESS_TOKEN = "token";
-    public static String URL_HOST = "http://teaminfinity.xyz";
+    public static String URL_HOST = "http://tuyennguoiyeu.jp";
 
     //Login
     public static final String LOGIN_ID = "id";
 
+    public static final String API_LOG = URL_HOST + "/icook/log.php";
     public static final String API_GET_LIST = URL_HOST + "/icook/cat.php?id=";
     public static final String API_LOGIN = URL_HOST + "/icook/login.php";
     public static final String API_ADD_USER = URL_HOST + "/icook/info.php";
