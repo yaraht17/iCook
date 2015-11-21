@@ -823,7 +823,7 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                                         Data.recomendDish = (ArrayList<DishItem>) listPrice.clone();
                                         result = "";
                                         for (DishItem dish : listPrice) {
-                                            result += dish.getName() + " với giá " + dish.getPrice() + " đồng , ";
+                                            result += dish.getName() + " với giá khoảng " + dish.getPrice() + " đồng , ";
                                         }
                                         if (!result.equals("")) {
                                             TalkAndSendMess(new OutputItem(result));
@@ -916,8 +916,8 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
         PendingIntent alarmIntent = PendingIntent.getService(this, 0, intent, 0);
 
         Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.HOUR_OF_DAY, 18);
-        calendar.set(Calendar.MINUTE, 40);
+        calendar.set(Calendar.HOUR_OF_DAY, 14);
+        calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
 
         alarmMgr.setInexactRepeating(AlarmManager.RTC, calendar.getTimeInMillis(),
