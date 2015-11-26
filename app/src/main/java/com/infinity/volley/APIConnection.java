@@ -15,6 +15,7 @@ import com.android.volley.toolbox.Volley;
 import com.infinity.data.Var;
 import com.infinity.model.DishItem;
 import com.infinity.model.MaterialItem;
+import com.infinity.model.PersonalItem;
 import com.infinity.model.UserItem;
 
 import org.json.JSONArray;
@@ -162,35 +163,36 @@ public class APIConnection {
         };
         MySingleton.getInstance(context).addToRequestQueue(jsObjRequest);
     }
-    public static void addUser(Context context, final UserItem user, String token, final VolleyCallback callback) throws JSONException {
+
+    public static void updateUser(Context context, final UserItem user, String token, final VolleyCallback callback) throws JSONException {
 
         final JSONObject jsonBody = new JSONObject();
+        jsonBody.put(Var.USER_ID, user.getId());
         jsonBody.put(Var.USER_NAME, user.getName());
         jsonBody.put(Var.USER_BIRTH, user.getBirthdate());
         jsonBody.put(Var.USER_SEX, user.getSex());
         jsonBody.put(Var.USER_HEIGHT, user.getHeight());
         jsonBody.put(Var.USER_WEIGHT, user.getWeight());
-        jsonBody.put(Var.ACCESS_TOKEN, token);
         JSONObject personal = new JSONObject();
         personal.put(Var.USER_PERSONAL_LIKE, user.getPersonal().getLike());
         personal.put(Var.USER_PERSONAL_DISLIKE, user.getPersonal().getDislike());
         personal.put(Var.USER_PERSONAL_SICK, user.getPersonal().getSick());
         jsonBody.put(Var.USER_PERSONAL, personal);
-
+        jsonBody.put(Var.ACCESS_TOKEN, token);
         Log.d("TienDH", "json send: " + jsonBody.toString());
         JsonObjectRequest jsObjRequest = new JsonObjectRequest
-                (Request.Method.POST, Var.API_ADD_USER, jsonBody, new Response.Listener<JSONObject>() {
+                (Request.Method.POST, Var.API_UPDATE_USER, jsonBody, new Response.Listener<JSONObject>() {
 
                     @Override
                     public void onResponse(JSONObject response) {
-                        Log.d("TienDH", "Add user: " + response);
+                        Log.d("TienDH", "update user: " + response);
                         callback.onSuccess(response);
                     }
                 }, new Response.ErrorListener() {
 
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        Log.d("TienDH", "Add user err: " + error.toString());
+                        Log.d("TienDH", "update err: " + error.toString());
                         callback.onError(error);
                     }
                 }) {
@@ -205,6 +207,47 @@ public class APIConnection {
         MySingleton.getInstance(context).addToRequestQueue(jsObjRequest);
     }
 
+    public static void addUser(Context context, final UserItem user, String token, final VolleyCallback callback) throws JSONException {
+
+        final JSONObject jsonBody = new JSONObject();
+        jsonBody.put(Var.USER_NAME, user.getName());
+        jsonBody.put(Var.USER_BIRTH, user.getBirthdate());
+        jsonBody.put(Var.USER_SEX, user.getSex());
+        jsonBody.put(Var.USER_HEIGHT, user.getHeight());
+        jsonBody.put(Var.USER_WEIGHT, user.getWeight());
+        JSONObject personal = new JSONObject();
+        personal.put(Var.USER_PERSONAL_LIKE, user.getPersonal().getLike());
+        personal.put(Var.USER_PERSONAL_DISLIKE, user.getPersonal().getDislike());
+        personal.put(Var.USER_PERSONAL_SICK, user.getPersonal().getSick());
+        jsonBody.put(Var.USER_PERSONAL, personal);
+        jsonBody.put(Var.ACCESS_TOKEN, token);
+        Log.d("TienDH", "json send: " + jsonBody.toString());
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest
+                (Request.Method.POST, Var.API_ADD_USER, jsonBody, new Response.Listener<JSONObject>() {
+
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.d("TienDH", "Add user: " + response);
+                        callback.onSuccess(response);
+                    }
+                }, new Response.ErrorListener() {
+
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.d("TienDH", "Add err: " + error.toString());
+                        callback.onError(error);
+                    }
+                }) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("Content-Type", "application/json");
+                params.put("charset", "utf-8");
+                return params;
+            }
+        };
+        MySingleton.getInstance(context).addToRequestQueue(jsObjRequest);
+    }
     public static void getUser(Context context, String token, final VolleyCallback callback) throws UnsupportedEncodingException {
         String url = "";
         url = Var.API_GET_USER + token;
@@ -229,6 +272,37 @@ public class APIConnection {
         MySingleton.getInstance(context).addToRequestQueue(jsObjRequest);
     }
 
+    public static void delUser(Context context, String token, int id, final VolleyCallback callback) throws UnsupportedEncodingException {
+        String url = "";
+        url = Var.API_DEL_USER + id + Var.PARAM_TOKEN + token;
+
+
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest
+                (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.d("TienDH", "res : " + response);
+                        callback.onSuccess(response);
+                    }
+                }, new Response.ErrorListener() {
+
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        callback.onError(error);
+                        Log.d("TienDH", "Res Error" + error.toString());
+                    }
+                }) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("Content-Type", "application/x-www-form-urlencoded");
+                params.put("charset", "utf-8");
+                return params;
+            }
+        };
+        MySingleton.getInstance(context).addToRequestQueue(jsObjRequest);
+    }
     public static void getChat(Context context, String message, final VolleyCallback callback) throws UnsupportedEncodingException {
         JsonObjectRequest jsObjRequest = new JsonObjectRequest
                 (Request.Method.GET, Var.API_CHAT + URLEncoder.encode(message, "utf-8"), null, new Response.Listener<JSONObject>() {
@@ -302,13 +376,12 @@ public class APIConnection {
                 int sex = object.getInt(Var.USER_SEX);
                 double height = object.getDouble(Var.USER_HEIGHT);
                 double weight = object.getDouble(Var.USER_WEIGHT);
-//                JSONObject perJSON  = object.getJSONObject(Var.USER_PERSONAL);
-//                String like = perJSON.getString(Var.USER_PERSONAL_LIKE);
-//                String dislike = perJSON.getString(Var.USER_PERSONAL_DISLIKE);
-//                String sick = perJSON.getString(Var.USER_PERSONAL_SICK);
-//                PersonalItem personal = new PersonalItem(like, dislike,sick);
+                String like = object.getString(Var.USER_PERSONAL_LIKE);
+                String dislike = object.getString(Var.USER_PERSONAL_DISLIKE);
+                String sick = object.getString(Var.USER_PERSONAL_SICK);
+                PersonalItem personal = new PersonalItem(like, dislike, sick);
 
-                UserItem user = new UserItem(id, name, birthdate, height, weight, sex);
+                UserItem user = new UserItem(id, name, birthdate, height, weight, sex, personal);
                 list.add(user);
             }
         } catch (JSONException e) {

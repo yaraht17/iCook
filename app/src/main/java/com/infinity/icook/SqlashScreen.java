@@ -81,7 +81,6 @@ public class SqlashScreen extends Activity implements
         Thread background = new Thread() {
             public void run() {
                 try {
-                    // Thread will sleep for 2 seconds
                     sleep(1 * 1000);
                     checkLogin();
                 } catch (Exception e) {
@@ -94,6 +93,19 @@ public class SqlashScreen extends Activity implements
             mIsResolving = savedInstanceState.getBoolean(KEY_IS_RESOLVING);
             mShouldResolve = savedInstanceState.getBoolean(KEY_SHOULD_RESOLVE);
         }
+
+        boolean guide = sharedPreferences.getBoolean(Var.GUIDE, false);
+        if (guide == false) {
+            setGuide();
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putBoolean(Var.GUIDE, true);
+            editor.commit();
+        }
+    }
+
+    public void setGuide() {
+        Intent intent = new Intent(SqlashScreen.this, Intro.class);
+        startActivity(intent);
     }
 
     @Override

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     android:orientation="horizontal"
     android:padding="5dp">
 
@@ -32,7 +32,7 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:padding="10dp">
 
         <TextView
@@ -73,5 +73,35 @@
             android:ellipsize="end"
             android:singleLine="true"
             android:text="65 kg" />
+
+        <TextView
+            android:id="@+id/txt_like"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/txt_weight"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:text="Sở thích"
+            android:textColor="#7d7d7d" />
+
+        <TextView
+            android:id="@+id/txt_dislike"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/txt_like"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:text="Sở ghét"
+            android:textColor="#7d7d7d" />
+
+        <TextView
+            android:id="@+id/txt_sickhistory"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/txt_dislike"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:text="Lịch sử bệnh"
+            android:textColor="#7d7d7d" />
     </RelativeLayout>
 </LinearLayout>

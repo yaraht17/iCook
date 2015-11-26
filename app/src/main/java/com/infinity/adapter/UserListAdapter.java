@@ -63,6 +63,9 @@ public class UserListAdapter extends ArrayAdapter<UserItem> {
             viewHolder.weight = (TextView) row.findViewById(R.id.txt_weight);
             viewHolder.bgAvt = (RelativeLayout) row.findViewById(R.id.bg_avt);
             viewHolder.txtNameAvt = (TextView) row.findViewById(R.id.name_avatar);
+            viewHolder.favourite = (TextView) row.findViewById(R.id.txt_like);
+            viewHolder.dislike = (TextView) row.findViewById(R.id.txt_dislike);
+            viewHolder.symptom = (TextView) row.findViewById(R.id.txt_sickhistory);
             row.setTag(viewHolder);
         } else {
             viewHolder = (ViewHolder) row.getTag();
@@ -71,6 +74,9 @@ public class UserListAdapter extends ArrayAdapter<UserItem> {
         viewHolder.birthdate.setText(item.getBirthdate());
         viewHolder.height.setText("Chiều cao: " + String.valueOf(item.getHeight()));
         viewHolder.weight.setText("Cân nặng: " + String.valueOf(item.getWeight()));
+        viewHolder.favourite.setText("Sở thích: " + item.getPersonal().getLike());
+        viewHolder.dislike.setText("Sở ghét: " + item.getPersonal().getDislike());
+        viewHolder.symptom.setText("Lịch sử bệnh: " + item.getPersonal().getSick());
         String name = item.getName();
         name = name.trim();
         String name_split[] = name.split(" ");
@@ -90,10 +96,11 @@ public class UserListAdapter extends ArrayAdapter<UserItem> {
 
 
     private class ViewHolder {
-        TextView name, birthdate, height, weight;
+        TextView name, birthdate, height, weight, favourite, dislike, symptom;
         ImageView img;
         //avatar
         RelativeLayout bgAvt;
         TextView txtNameAvt;
+
     }
 }

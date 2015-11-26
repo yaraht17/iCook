@@ -7,13 +7,11 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
@@ -44,7 +42,6 @@ import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.plus.Plus;
 import com.infinity.adapter.CustomDrawerAdapter;
 import com.infinity.adapter.ImageAdapter;
-import com.infinity.clock.BootReceiver;
 import com.infinity.clock.Entity;
 import com.infinity.clock.HourlyService;
 import com.infinity.clock.MoreInfoActivity;
@@ -255,6 +252,7 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
             editor.commit();
         }
 
+
     }
 
     @Override
@@ -288,7 +286,6 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
         super.onPause();
         if (recognizer != null) {
             recognizer.stop();
-
         }
     }
 
@@ -339,11 +336,12 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
 
     private ArrayList initDrawerData() {
         ArrayList list = new ArrayList();
-        list.add(new DrawerItem(idEmail, "", R.drawable.ava));
+        list.add(new DrawerItem(idEmail, "", R.drawable.avatar_user));
         list.add(new DrawerItem("Thông tin gia đình", R.string.users));
         list.add(new DrawerItem("Theo dõi ăn uống", R.string.icon_history));
-        list.add(new DrawerItem("Báo thức", R.string.icon_clock));
+        list.add(new DrawerItem("Nhắc nhở", R.string.icon_clock));
         list.add(new DrawerItem("Cài đặt", R.string.settings_icon));
+        list.add(new DrawerItem("Hướng dẫn", R.string.icon_guide));
         list.add(new DrawerItem("Đăng xuất", R.string.logout_icon));
         return list;
     }
@@ -383,6 +381,10 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                     finish();
                     break;
                 case 5:
+                    mDrawerLayout.closeDrawer(Gravity.LEFT);
+                    setGuide();
+                    break;
+                case 6:
                     //logout
                     createDialog();
                     break;
@@ -901,22 +903,28 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
     }
 
 
+    public void setGuide() {
+        Intent intent = new Intent(Home.this, Intro.class);
+        startActivity(intent);
+    }
+
+
 
     public void setAlarmHourly() {
 
         //set Reboot
-        ComponentName receiver = new ComponentName(this, BootReceiver.class);
-        PackageManager pm = this.getPackageManager();
-        pm.setComponentEnabledSetting(receiver,
-                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-                PackageManager.DONT_KILL_APP);
+//        ComponentName receiver = new ComponentName(this, BootReceiver.class);
+//        PackageManager pm = this.getPackageManager();
+//        pm.setComponentEnabledSetting(receiver,
+//                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+//                PackageManager.DONT_KILL_APP);
 
         AlarmManager alarmMgr = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(this, HourlyService.class);
         PendingIntent alarmIntent = PendingIntent.getService(this, 0, intent, 0);
 
         Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.HOUR_OF_DAY, 14);
+        calendar.set(Calendar.HOUR_OF_DAY, 21);
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
 
@@ -1053,7 +1061,7 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
             }
         }
         super.onActivityResult(requestCode, resultCode, data);
-
+        CloseDetails();
 
     }
 

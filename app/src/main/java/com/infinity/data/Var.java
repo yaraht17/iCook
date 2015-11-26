@@ -15,10 +15,13 @@ public class Var {
     public static final String API_GET_LIST = URL_HOST + "/icook/cat.php?id=";
     public static final String API_LOGIN = URL_HOST + "/icook/login.php";
     public static final String API_ADD_USER = URL_HOST + "/icook/info.php";
+    public static final String API_UPDATE_USER = URL_HOST + "/icook/edit_user.php";
     public static final String API_GET_USER = URL_HOST + "/icook/info.php?token=";
     public static final String API_CHAT = URL_HOST + "/icook/chat.php?mess=";
     public static final String API_SEND_TOKEN = URL_HOST + "/icook/getdish.php?token=";
     public static final String API_GET_MAT = URL_HOST + "/icook/getmat.php?token=";
+    public static final String API_DEL_USER = URL_HOST + "/icook/edit_user.php?id=";
+    public static final String PARAM_TOKEN = "&token=";
     public static final String PARAM_DISH_ID = "&dishid=";
 
     //Dish
@@ -45,17 +48,21 @@ public class Var {
     public static final String USER_WEIGHT = "weight";
     public static final String USER_EMAIL = "email";
     public static final String USER_PERSONAL = "personal";
-    public static final String USER_PERSONAL_LIKE = "like";
+    public static final String USER_PERSONAL_LIKE = "favourite";
     public static final String USER_PERSONAL_DISLIKE = "dislike";
-    public static final String USER_PERSONAL_SICK = "sick";
+    public static final String USER_PERSONAL_SICK = "symptom";
     //key truyen extra
     public static final String DISH_EXTRA = "DISH";
+    public static final String USER_EXTRA = "USER";
+
     public static final int DRAWABLE_LIST[] = {R.drawable.avatar, R.drawable.avatar1, R.drawable.avatar2,
             R.drawable.avatar4, R.drawable.avatar5, R.drawable.avatar3};
     public static final String CLOCK_TIME = "timeclock";
     public static final String STR_INTENT = "strIntent";
     public static final String NUMBER_INTENT = "numberIntent";
     public static final String RUN = "run";
+    public static final String GUIDE = "guide";
+
 
     public static final String[] nextStep = {"tiếp", "rồi sao nữa", "tiếp theo", "tiếp đi", "tiếp theo là gì",
             "xong rồi", "còn gì nữa", "còn gì nữa không", "thực hiện như thế nào", "hướng dẫn tôi tiếp", "hết chưa"};

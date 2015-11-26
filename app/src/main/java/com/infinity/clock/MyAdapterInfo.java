@@ -10,6 +10,7 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 
+import com.infinity.data.Progress;
 import com.infinity.icook.R;
 
 import java.util.ArrayList;
@@ -56,7 +57,7 @@ public class MyAdapterInfo extends ArrayAdapter<Entity> {
         } else {
             viewHolder = (ViewHolder) view.getTag();
         }
-        viewHolder.dishName.setText(tmp.getTime().toString());
+        viewHolder.dishName.setText(Progress.normalized(tmp.getTime().toString()));
         viewHolder.cb.setChecked(tmp.getState());
         viewHolder.cb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override

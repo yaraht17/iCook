@@ -1,6 +1,8 @@
 package com.infinity.model;
 
-public class PersonalItem {
+import java.io.Serializable;
+
+public class PersonalItem implements Serializable {
     private String like;
     private String dislike;
     private String sick;

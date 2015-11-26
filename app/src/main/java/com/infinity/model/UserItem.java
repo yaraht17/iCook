@@ -1,6 +1,8 @@
 package com.infinity.model;
 
-public class UserItem {
+import java.io.Serializable;
+
+public class UserItem implements Serializable {
     private int id;
     private String name;
     private String birthdate;

@@ -109,7 +109,7 @@ public class Database extends SQLiteOpenHelper {
     public ArrayList<Entity> getListToday() {
         ArrayList<Entity> list = new ArrayList<Entity>();
 //        Cursor cursor = mSQLitedb.query(TABLE_NAME, null, CL_DATE + " = date('now')", null, null, null, null);
-        String sql = "SELECT * FROM " + TABLE_NAME + " ORDER BY " + CL_ID + " DESC";
+        String sql = "SELECT * FROM " + TABLE_NAME + " ORDER BY " + CL_ID + " DESC LIMIT 7";
         Cursor cursor = mSQLitedb.rawQuery(sql, null);
         Log.d("TienDH", "sql: " + sql);
         while (cursor.moveToNext()) {

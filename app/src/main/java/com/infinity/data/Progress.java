@@ -192,4 +192,10 @@ public class Progress {
 
         return list;
     }
+
+    public static String normalized(String s) {
+        String str = s.toLowerCase();
+        str = str.substring(0, 1).toUpperCase() + str.substring(1);
+        return str;
+    }
 }

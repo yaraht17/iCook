@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.NetworkImageView;
+import com.infinity.data.Progress;
 import com.infinity.icook.R;
 import com.infinity.model.DishItem;
 import com.infinity.volley.MySingleton;
@@ -79,7 +80,7 @@ public class DishListAdapter extends ArrayAdapter<DishItem> {
         } else {
             viewHolder = (ViewHolder) row.getTag();
         }
-        viewHolder.dishName.setText(item.getName());
+        viewHolder.dishName.setText(Progress.normalized(item.getName()));
         viewHolder.img.setImageUrl(item.getImage(), imageLoader);
         viewHolder.des.setText(item.getIntroduce());
         return row;

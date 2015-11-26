@@ -1,16 +1,22 @@
 package com.infinity.icook;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,12 +29,13 @@ import com.infinity.model.UserItem;
 import com.infinity.volley.APIConnection;
 import com.infinity.volley.VolleyCallback;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
-public class ManagerUser extends Activity implements View.OnClickListener {
+public class ManagerUser extends Activity implements View.OnClickListener, AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener {
 
     private Typeface font_awesome, font_tony;
     private ListView listUser;
@@ -61,7 +68,7 @@ public class ManagerUser extends Activity implements View.OnClickListener {
 
         usersAdapter = new UserListAdapter(this, -1, userItems);
         listUser.setAdapter(usersAdapter);
-
+        listUser.setOnItemLongClickListener(this);
         pDialog = new ProgressDialog(this);
         // Showing progress dialog before making http request
         pDialog.setMessage("Loading...");
@@ -77,8 +84,12 @@ public class ManagerUser extends Activity implements View.OnClickListener {
                 startActivity(intent);
             }
         });
+        popupMenu = new PopupMenu(getApplicationContext(),
+                listUser);
+        popupMenu.inflate(R.menu.menu_popup);
     }
 
+    private PopupMenu popupMenu;
 
     @Override
     protected void onResume() {
@@ -147,4 +158,97 @@ public class ManagerUser extends Activity implements View.OnClickListener {
                 break;
         }
     }
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+
+    }
+
+    @Override
+    public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+
+        setDialog(userItems.get(position));
+        return false;
+    }
+
+    private String[] items = {"Sửa", "Xóa"};
+
+    public void setDialog(final UserItem userItem) {
+        AlertDialog.Builder dialog = new Builder(this);
+        dialog.setTitle(userItem.getName());
+        dialog.setItems(items, new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                        switch (i) {
+                            case 0:
+                                Intent intent = new Intent(ManagerUser.this,
+                                        AddUser.class);
+                                intent.putExtra(Var.USER_EXTRA, userItem);
+                                startActivity(intent);
+                                break;
+                            case 1:
+
+                                AlertDialog.Builder builder = new AlertDialog.Builder(ManagerUser.this);
+                                builder.setMessage("\n Xóa thông tin người này? \n");
+                                builder.setCancelable(false);
+                                builder.setPositiveButton("KHÔNG",
+                                        new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int id) {
+                                                dialog.cancel();
+                                            }
+                                        });
+                                builder.setNegativeButton("XÓA", new DialogInterface.OnClickListener() {
+
+
+                                            public void onClick(DialogInterface dialog, int id) {
+                                                Log.d("TienDH", "id del: " + userItem.getId());
+                                                if (ConnectionDetector.isNetworkConnected(getApplicationContext())) {
+                                                    try {
+                                                        APIConnection.delUser(getApplicationContext(), token, userItem.getId(), new VolleyCallback() {
+                                                            @Override
+                                                            public void onSuccess(JSONObject response) {
+
+                                                                Log.d("TienDH", "update user: " + response);
+                                                                try {
+                                                                    int code = response.getInt("code");
+                                                                    if (code == 201 || code == 200) {
+                                                                        Toast.makeText(getApplicationContext(),
+                                                                                "Xóa thành công", Toast.LENGTH_LONG).show();
+                                                                        onResume();
+                                                                    }
+                                                                } catch (JSONException e) {
+                                                                    e.printStackTrace();
+                                                                }
+
+                                                            }
+
+                                                            @Override
+                                                            public void onError(VolleyError error) {
+                                                                Toast.makeText(getApplicationContext(),
+                                                                        "Xảy ra lỗi, vui lòng thử lại!", Toast.LENGTH_LONG).show();
+                                                            }
+                                                        });
+                                                    } catch (UnsupportedEncodingException e) {
+                                                        e.printStackTrace();
+                                                    }
+                                                } else {
+                                                    Toast.makeText(getApplicationContext(),
+                                                            "Vui lòng kết nối internet!", Toast.LENGTH_LONG).show();
+                                                }
+                                            }
+                                        }
+                                );
+                                builder.create().
+                                        show();
+                                break;
+                        }
+                    }
+                }
+        );
+        dialog.show();
+    }
+
 }

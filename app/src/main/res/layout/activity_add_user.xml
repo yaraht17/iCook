@@ -1,206 +1,292 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
-    android:orientation="vertical"
-    tools:context="com.infinity.icook.AddUser">
-
-    <android.support.design.widget.AppBarLayout
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+    <include
+        android:id="@+id/include"
+        layout="@layout/actionbar"
+        android:layout_width="fill_parent"
+        android:layout_height="60dp" />
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:theme="@style/AppTheme.AppBarOverlay">
-
-        <android.support.v7.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            app:popupTheme="@style/AppTheme.PopupOverlay" />
-
-    </android.support.design.widget.AppBarLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#FFFFFF"
-        android:orientation="vertical">
-
+        android:layout_height="wrap_content">
 
         <LinearLayout
+            android:layout_margin="5dp"
+            android:descendantFocusability="beforeDescendants"
+            android:focusableInTouchMode="true"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_marginTop="5dp"
-            android:layout_weight="0.2"
+            android:layout_height="wrap_content"
+            android:background="#FFFFFF"
             android:orientation="vertical">
 
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:orientation="horizontal"
-                android:padding="5dp">
-
-                <TextView
-                    android:id="@+id/iconName"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:gravity="center"
-                    android:text="@string/user_icon"
-                    android:textSize="20dp" />
-
-                <EditText
-                    android:id="@+id/txtName"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_gravity="center"
-                    android:layout_margin="10dp"
-                    android:layout_weight="10"
-                    android:background="@drawable/square"
-                    android:ellipsize="start"
-                    android:hint="Họ và tên"
-                    android:padding="5dp" />
-            </LinearLayout>
-
-            <View
-                android:layout_width="fill_parent"
-                android:layout_height="1dp"
-                android:background="#3399FF" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:orientation="horizontal"
-                android:padding="5dp">
-
-                <TextView
-                    android:id="@+id/iconBirthdate"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:gravity="center"
-                    android:text="@string/birthdate"
-                    android:textSize="20dp" />
-
-                <DatePicker
-                    android:id="@+id/txtBirthdate"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_gravity="center"
-                    android:layout_margin="10dp"
-                    android:layout_weight="10" />
-
-                <!--<DatePicker-->
-                <!--android:id="@+id/dpBirthdate"-->
-                <!--android:layout_width="wrap_content"-->
-                <!--android:layout_height="100dp" />-->
-            </LinearLayout>
-
-            <View
-                android:layout_width="fill_parent"
-                android:layout_height="1dp"
-                android:background="#3399FF" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:orientation="horizontal"
-                android:padding="5dp">
-
-                <TextView
-                    android:id="@+id/iconHeight"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:gravity="center"
-                    android:text="@string/height"
-                    android:textSize="20dp" />
-
-                <EditText
-                    android:id="@+id/txtHeight"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_margin="10dp"
-                    android:background="@drawable/square"
-                    android:ellipsize="start"
-                    android:hint="Chiều cao (cm)"
-                    android:padding="5dp" />
-            </LinearLayout>
-
-            <View
-                android:layout_width="fill_parent"
-                android:layout_height="1dp"
-                android:background="#3399FF" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:orientation="horizontal"
-                android:padding="5dp">
-
-                <TextView
-                    android:id="@+id/iconWeight"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:gravity="center"
-                    android:text="@string/weight"
-                    android:textSize="20dp" />
-
-                <EditText
-                    android:id="@+id/txtWeight"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_margin="10dp"
-                    android:background="@drawable/square"
-                    android:ellipsize="start"
-                    android:hint="Cân nặng (kg)"
-                    android:padding="5dp" />
-            </LinearLayout>
-
-
-            <View
-                android:layout_width="fill_parent"
-                android:layout_height="1dp"
-                android:background="#3399FF" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:layout_marginTop="5dp"
                 android:gravity="center"
-                android:orientation="horizontal"
-                android:padding="10dp">
+                android:text="Thông tin"
+                android:textSize="20dp"
+                android:textStyle="bold" />
 
-                <RadioGroup
-                    android:id="@+id/radio_group"
+            <View
+                android:layout_width="fill_parent"
+                android:layout_height="1dp"
+                android:background="#3399FF" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_marginTop="5dp"
+                android:layout_weight="0.2"
+                android:orientation="vertical">
+
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:orientation="horizontal"
+                    android:padding="5dp">
+
+                    <TextView
+                        android:id="@+id/iconName"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:gravity="center"
+                        android:text="@string/user_icon"
+                        android:textSize="20dp" />
+
+                    <EditText
+                        android:id="@+id/txtName"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center"
+                        android:layout_margin="10dp"
+                        android:layout_weight="10"
+                        android:background="@drawable/square"
+                        android:ellipsize="start"
+                        android:hint="Họ và tên"
+                        android:padding="5dp" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="fill_parent"
+                    android:layout_height="1dp"
+                    android:background="#3399FF" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:orientation="horizontal"
+                    android:padding="5dp">
+
+                    <TextView
+                        android:id="@+id/iconBirthdate"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:gravity="center"
+                        android:text="@string/birthdate"
+                        android:textSize="20dp" />
+
+                    <EditText
+                        android:id="@+id/txtBirthdate"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center"
+                        android:layout_margin="10dp"
+                        android:layout_weight="10"
+                        android:background="@drawable/square"
+                        android:ellipsize="start"
+                        android:hint="Ngày sinh (dd/mm/yyyy)"
+                        android:padding="5dp" />
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="fill_parent"
+                    android:layout_height="1dp"
+                    android:background="#3399FF" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:orientation="horizontal"
+                    android:padding="5dp">
+
+                    <TextView
+                        android:id="@+id/iconHeight"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:gravity="center"
+                        android:text="@string/height"
+                        android:textSize="20dp" />
+
+                    <EditText
+                        android:id="@+id/txtHeight"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_margin="10dp"
+                        android:background="@drawable/square"
+                        android:ellipsize="start"
+                        android:hint="Chiều cao (cm)"
+                        android:padding="5dp" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="fill_parent"
+                    android:layout_height="1dp"
+                    android:background="#3399FF" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:orientation="horizontal"
+                    android:padding="5dp">
+
+                    <TextView
+                        android:id="@+id/iconWeight"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:gravity="center"
+                        android:text="@string/weight"
+                        android:textSize="20dp" />
+
+                    <EditText
+                        android:id="@+id/txtWeight"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_margin="10dp"
+                        android:background="@drawable/square"
+                        android:ellipsize="start"
+                        android:hint="Cân nặng (kg)"
+                        android:padding="5dp" />
+                </LinearLayout>
+
+
+                <View
+                    android:layout_width="fill_parent"
+                    android:layout_height="1dp"
+                    android:background="#3399FF" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:padding="10dp">
+
+                    <RadioGroup
+                        android:id="@+id/radio_group"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <RadioButton
+                            android:id="@+id/rbtnMale"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Nam" />
+
+                        <RadioButton
+                            android:id="@+id/rbtnFemale"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="40dp"
+                            android:text="Nữ" />
+                    </RadioGroup>
+                </LinearLayout>
+
+
+                <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:layout_marginLeft="20dp"
+                    android:layout_marginTop="5dp"
+                    android:gravity="center"
+                    android:text="Thói quen"
+                    android:textSize="20dp"
+                    android:textStyle="bold" />
 
-                    <RadioButton
-                        android:id="@+id/rbtnMale"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Nam" />
+                <View
+                    android:layout_width="fill_parent"
+                    android:layout_height="1dp"
+                    android:background="#3399FF" />
 
-                    <RadioButton
-                        android:id="@+id/rbtnFemale"
-                        android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="10dp">
+
+                    <EditText
+                        android:id="@+id/txtLike"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="40dp"
-                        android:text="Nữ" />
-                </RadioGroup>
+                        android:layout_gravity="center"
+                        android:layout_margin="10dp"
+                        android:background="@drawable/square"
+                        android:ellipsize="start"
+                        android:hint="Sở thích"
+                        android:padding="5dp" />
+
+                    <EditText
+                        android:id="@+id/txtDisLike"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_margin="10dp"
+                        android:background="@drawable/square"
+                        android:ellipsize="start"
+                        android:hint="Sở ghét"
+                        android:padding="5dp" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="20dp"
+                    android:layout_marginTop="5dp"
+                    android:gravity="center"
+                    android:text="Lịch sử bệnh"
+                    android:textSize="20dp"
+                    android:textStyle="bold" />
+
+                <View
+                    android:layout_width="fill_parent"
+                    android:layout_height="1dp"
+                    android:background="#3399FF" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:padding="10dp">
+
+                    <EditText
+                        android:id="@+id/txtSickHistory"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_margin="10dp"
+                        android:background="@drawable/square"
+                        android:ellipsize="start"
+                        android:hint=""
+                        android:padding="5dp" />
+
+                </LinearLayout>
+
+
             </LinearLayout>
-
-            <View
-                android:layout_width="fill_parent"
-                android:layout_height="1dp"
-                android:background="#3399FF" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -227,5 +313,7 @@
 
             </LinearLayout>
         </LinearLayout>
-    </LinearLayout>
+    </ScrollView>
+
+
 </LinearLayout>

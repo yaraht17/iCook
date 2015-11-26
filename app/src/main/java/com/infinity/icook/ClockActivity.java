@@ -14,6 +14,7 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.infinity.clock.Entity;
 import com.infinity.clock.MyAdapter;
@@ -70,6 +71,8 @@ public class ClockActivity extends Activity implements View.OnClickListener {
                 arr.add(tmp);
             }
             adapter.notifyDataSetChanged();
+        } else {
+            Toast.makeText(this, "Chưa có nhắc nhở", Toast.LENGTH_SHORT).show();
         }
     }
 
