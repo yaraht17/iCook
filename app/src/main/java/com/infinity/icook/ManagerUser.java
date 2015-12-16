@@ -59,7 +59,7 @@ public class ManagerUser extends Activity implements View.OnClickListener, Adapt
         NavTitle = (TextView) findViewById(R.id.NavTitle);
         barbtn = (Button) findViewById(R.id.barbtn);
 
-        NavTitle.setText("Family");
+        NavTitle.setText("Gia đình");
         NavTitle.setTypeface(font_tony);
         barbtn.setText(R.string.icon_back);
         barbtn.setTypeface(font_awesome);

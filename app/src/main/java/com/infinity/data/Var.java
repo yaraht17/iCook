@@ -6,7 +6,7 @@ public class Var {
 
     public static final String MY_PREFERENCES = "PRE_LOGIN";
     public static final String ACCESS_TOKEN = "token";
-    public static String URL_HOST = "http://tuyennguoiyeu.jp";
+    public static String URL_HOST = "http://teaminfinity.xyz";
 
     //Login
     public static final String LOGIN_ID = "id";
@@ -65,10 +65,10 @@ public class Var {
 
 
     public static final String[] nextStep = {"tiếp", "rồi sao nữa", "tiếp theo", "tiếp đi", "tiếp theo là gì",
-            "xong rồi", "còn gì nữa", "còn gì nữa không", "thực hiện như thế nào", "hướng dẫn tôi tiếp", "hết chưa"};
+            "xong rồi", "còn gì nữa", "còn gì nữa không", "thực hiện như thế nào", "hướng dẫn tôi tiếp", "hết chưa", "tiếp theo như nào"};
     public static final String[] done = {"thôi", "xong rồi", "tôi biết rồi", "được rồi", "tôi biết làm rồi"};
 
-    public static final String[] repeat = {"nhắc lại", "nhắc lại đi", "đọc lại", "đọc lại đi", "tôi chưa nghe kịp",
-            "tôi chưa làm kịp", "hướng dẫn tôi lại"};
+    public static final String[] repeat = {"nhắc lại", "nhắc lại đi", "đọc lại", "đọc lại đi", "tôi chưa nghe kịp", "nhắc tôi lại",
+            "tôi chưa làm kịp", "hướng dẫn tôi lại", "nói lại đi", "tôi nghe chưa rõ", "bạn đọc nhanh quá", "bạn nói nhanh quá"};
     public static final String ACTIVE_VOICE = "ACTIVE";
 }

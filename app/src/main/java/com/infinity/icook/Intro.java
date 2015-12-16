@@ -12,8 +12,9 @@ public class Intro extends AppIntro {
         addSlide(SampleSlide.newInstance(R.layout.test_intro3));
         addSlide(SampleSlide.newInstance(R.layout.test_intro4));
         addSlide(SampleSlide.newInstance(R.layout.test_intro5));
-//        addSlide(SampleSlide.newInstance(R.layout.intro55));
-//        addSlide(SampleSlide.newInstance(R.layout.intro6));
+        addSlide(SampleSlide.newInstance(R.layout.test_intro6));
+        addSlide(SampleSlide.newInstance(R.layout.test_intro7));
+        addSlide(SampleSlide.newInstance(R.layout.test_intro8));
     }
 
 

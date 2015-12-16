@@ -1,10 +1,9 @@
 <resources>
     <string name="app_name">iCook</string>
 
-    <string name="hello_world">Hello world!</string>
-    <string name="assist_title">Assistant</string>
+    <string name="assist_title">Trợ lý</string>
     <string name="action_settings">Settings</string>
-    <string name="category">Category</string>
+    <string name="category">Danh mục</string>
     <string name="title_activity_dish_detail">DishDetailActivity</string>
     <string name="title_activity_manager_user">ManagerUser</string>
 
@@ -33,6 +32,7 @@
     <string name="icon_add">&#xf067;</string>
     <string name="icon_add_cirle">&#xf055;</string>
     <string name="icon_guide">&#xf02d;</string>
+    <string name="icon_robot">&#xf0ec;</string>
     <string name="title_activity_clock">ClockActivity</string>
     <string name="title_activity_sqlash_screen">SqlashScreen</string>
     <string name="title_activity_add_user">AddUser</string>

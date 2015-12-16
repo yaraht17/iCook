@@ -49,7 +49,7 @@ public class ClockActivity extends Activity implements View.OnClickListener {
         adapter = new MyAdapter(this, R.layout.my_item, arr);
         lv.setAdapter(adapter);
 
-        NavTitle.setText("Clock");
+        NavTitle.setText("Nhắc nhở");
         NavTitle.setTypeface(font_tony);
         barbtn.setText(R.string.icon_back);
         barbtn.setTypeface(font_awesome);

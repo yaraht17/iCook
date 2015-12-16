@@ -1,0 +1,58 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <include
+        android:id="@+id/include"
+        layout="@layout/actionbar"
+        android:layout_width="fill_parent"
+        android:layout_height="60dp" />
+
+    <Button
+        android:id="@+id/scan"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:gravity="center"
+        android:text="Scan" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/ed_message"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:hint="Message to speak" />
+
+        <Button
+            android:id="@+id/speak"
+            android:layout_width="80dp"
+            android:layout_height="40dp"
+            android:gravity="center"
+            android:text="Speak" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/rungesture"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="Run random gesture" />
+
+    <Button
+        android:id="@+id/standup"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="Standup" />
+
+    <Button
+        android:id="@+id/crouch"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="Crouch" />
+
+</LinearLayout>

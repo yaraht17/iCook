@@ -52,7 +52,7 @@ public class MoreInfoActivity extends Activity implements View.OnClickListener {
         font_tony = Typeface.createFromAsset(this.getAssets(), "uvf-slimtony.ttf");
         NavTitle = (TextView) findViewById(R.id.NavTitle);
         barbtn = (Button) findViewById(R.id.barbtn);
-        NavTitle.setText("Subscribe");
+        NavTitle.setText("Theo dõi ăn uống");
         NavTitle.setTypeface(font_tony);
         barbtn.setText(R.string.icon_back);
         barbtn.setTypeface(font_awesome);

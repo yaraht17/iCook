@@ -10,7 +10,6 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -35,11 +34,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.VolleyError;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.Scopes;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.Scope;
-import com.google.android.gms.plus.Plus;
+import com.fpt.robot.RobotException;
+import com.fpt.robot.app.RobotActivity;
+import com.fpt.robot.motion.RobotGesture;
+import com.fpt.robot.tts.RobotTextToSpeech;
 import com.infinity.adapter.CustomDrawerAdapter;
 import com.infinity.adapter.ImageAdapter;
 import com.infinity.clock.Entity;
@@ -84,10 +82,8 @@ import edu.cmu.pocketsphinx.SpeechRecognizer;
 
 import static edu.cmu.pocketsphinx.SpeechRecognizerSetup.defaultSetup;
 
-public class Home extends Activity implements View.OnClickListener, GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener, RecognitionListener {
+public class Home extends RobotActivity implements View.OnClickListener, RecognitionListener {
     private static final int REQUEST_CODE = 1234;
-    private GoogleApiClient mGoogleApiClient;
 
     private TextView NavTitle, iCookBtnText;
     private View iCookBtnLayout, chatBar;
@@ -136,48 +132,20 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
         TALK, BROWSE, DETAILS
     }
 
-    @Override
-    public void onConnected(Bundle bundle) {
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-        if (!mIsResolving && mShouldResolve) {
-            if (connectionResult.hasResolution()) {
-                try {
-                    connectionResult.startResolutionForResult(this, RC_SIGN_IN);
-                    mIsResolving = true;
-                } catch (IntentSender.SendIntentException e) {
-                    Log.e("TienDH", "Could not resolve ConnectionResult.", e);
-                    mIsResolving = false;
-                    mGoogleApiClient.connect();
-                }
-            } else {
-                Toast.makeText(this, "Xảy ra lỗi", Toast.LENGTH_LONG).show();
-            }
-        }
-    }
-
+    private static final String email = "infinity@gmail.com";
+    private static final String token = "102d58441a73fe25f499e8cd32ccd938";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
         dbDish = new Database(this);
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(Plus.API)
-                .addScope(new Scope(Scopes.PROFILE))
-                .addScope(new Scope(Scopes.EMAIL))
-                .build();
-
 
         sharedPreferences = getSharedPreferences(Var.MY_PREFERENCES, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(Var.USER_EMAIL, email);
+        editor.putString(Var.ACCESS_TOKEN, token);
+        editor.commit();
         accessToken = sharedPreferences.getString(Var.ACCESS_TOKEN, "");
         activeVoice = sharedPreferences.getBoolean(Var.ACTIVE_VOICE, false);
         idEmail = sharedPreferences.getString(Var.USER_EMAIL, "");
@@ -247,7 +215,7 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
         boolean run = sharedPreferences.getBoolean(Var.RUN, false);
         if (run == false) {
             setAlarmHourly();
-            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor = sharedPreferences.edit();
             editor.putBoolean(Var.RUN, true);
             editor.commit();
         }
@@ -258,7 +226,6 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
     @Override
     public void onStart() {
         super.onStart();
-        mGoogleApiClient.connect();
     }
 
     @Override
@@ -278,7 +245,6 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
     @Override
     public void onStop() {
         super.onStop();
-        mGoogleApiClient.disconnect();
     }
 
     @Override
@@ -301,12 +267,12 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
     }
 
     private void addItemToCategoryList() {
-        items.add(new CatItem(R.drawable.cat_egg, "Poultry"));
-        items.add(new CatItem(R.drawable.cat_meat, "Meat"));
-        items.add(new CatItem(R.drawable.cat_vegetable, "Vegetable"));
-        items.add(new CatItem(R.drawable.cat_soup, "Soup"));
-        items.add(new CatItem(R.drawable.cat_fish, "Fish"));
-        items.add(new CatItem(R.drawable.cat_cake, "Cake"));
+        items.add(new CatItem(R.drawable.cat_egg, "Gia cầm"));
+        items.add(new CatItem(R.drawable.cat_meat, "Thịt"));
+        items.add(new CatItem(R.drawable.cat_vegetable, "Rau"));
+        items.add(new CatItem(R.drawable.cat_soup, "Canh"));
+        items.add(new CatItem(R.drawable.cat_fish, "Cá"));
+        items.add(new CatItem(R.drawable.cat_cake, "Bánh"));
     }
 
     // ham mo 1 category
@@ -342,6 +308,7 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
         list.add(new DrawerItem("Nhắc nhở", R.string.icon_clock));
         list.add(new DrawerItem("Cài đặt", R.string.settings_icon));
         list.add(new DrawerItem("Hướng dẫn", R.string.icon_guide));
+        list.add(new DrawerItem("Kết nối robot", R.string.icon_robot));
         list.add(new DrawerItem("Đăng xuất", R.string.logout_icon));
         return list;
     }
@@ -385,9 +352,15 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                     setGuide();
                     break;
                 case 6:
+                    intent = new Intent(getApplicationContext(), RobotController.class);
+                    mDrawerLayout.closeDrawer(Gravity.LEFT);
+                    startActivity(intent);
+                    break;
+                case 7:
                     //logout
                     createDialog();
                     break;
+
                 default:
                     break;
             }
@@ -406,30 +379,11 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                 });
         builder.setNegativeButton("ĐĂNG XUẤT", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
-                onSignOutClicked();
             }
         });
         builder.create().show();
     }
 
-    //logout
-    private void onSignOutClicked() {
-        progressDialog = new ProgressDialog(this);
-        progressDialog.setMessage("Đăng xuất...");
-        progressDialog.show();
-        if (mGoogleApiClient.isConnected()) {
-            Plus.AccountApi.clearDefaultAccount(mGoogleApiClient);
-            mGoogleApiClient.disconnect();
-        }
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.remove(Var.ACCESS_TOKEN);
-        editor.remove(Var.USER_EMAIL);
-        editor.commit();
-        progressDialog.cancel();
-        Intent intent = new Intent(this, SqlashScreen.class);
-        startActivity(intent);
-        finish();
-    }
 
     @Override
     public void onClick(View v) {
@@ -693,7 +647,7 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                                         ArrayList<DishItem> dishList = APIConnection.parseDishSmart(response);
                                         for (DishItem dish : dishList) {
                                             dbDish.insertDish(dish);
-                                            result = result + dish.getName() + ", ";
+                                            result = result + dish.getName() + " , ";
                                         }
                                         if (!result.equals("") && result != null) {
                                             TalkAndSendMess(new OutputItem("Bạn có thể nấu " + result));
@@ -777,7 +731,7 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                                             for (DishItem dish : Data.recomendDish) {
                                                 allMat.addAll(dish.getMaterials());
                                             }
-
+                                            allMat = Progress.importMaterial(allMat);
                                             OutputItem outMat = Progress.convertMatListToOutput(allMat);
                                             talkFinal += outMat.getTalk();
                                             messFinal += outMat.getMess();
@@ -874,7 +828,7 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
                                         } else if (aop11 == 1) {
                                             TalkAndSendMess(new OutputItem("Bạn nên ăn " + edible));
                                         } else {
-                                            TalkAndSendMess(new OutputItem("Bạn nên ăn " + edible + ". Và nên kiêng " + inedible));
+                                            TalkAndSendMess(new OutputItem("Bạn nên ăn " + edible + " . Và nên kiêng " + inedible));
                                         }
                                     default:
                                         break;
@@ -907,7 +861,6 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
         Intent intent = new Intent(Home.this, Intro.class);
         startActivity(intent);
     }
-
 
 
     public void setAlarmHourly() {
@@ -1013,10 +966,121 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
 
     private void TalkAndSendMess(OutputItem out) {
         String mess = out.getMess().toLowerCase();
-        String talk = out.getTalk().toLowerCase();
+        final String talk = out.getTalk().toLowerCase();
         ChatMessage message = new ChatMessage(true, mess, "");
         chatview.sendChatMessage(message);
-        talkTTS(talk);
+        if (getConnectedRobot() == null) {
+            talkTTS(talk);
+        } else {
+            robotTTS(talk);
+        }
+    }
+
+    public void robotTTS(final String talk) {
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Thread thread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (!talk.equals("")) {
+                            speak(talk, RobotTextToSpeech.ROBOT_TTS_LANG_VI);
+                        }
+                    }
+
+                });
+                thread.start();
+                try {
+                    thread.join();
+                    if (activeVoice) {
+                        Log.d("TienDH", "robot tts complete");
+                        if (recognizer != null) {
+                            switchSearch(KWS_SEARCH);
+                        }
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+
+        int num = 0;
+        int delay = 0;
+        if (talk.length() > 50 && talk.length() < 100) {
+            num = 3;
+            delay = 1000;
+        } else if (talk.length() > 100 && talk.length() < 150) {
+            num = 4;
+            delay = 1500;
+        } else if (talk.length() > 150) {
+            num = 6;
+            delay = 2000;
+        }
+
+        final int finalNum = num;
+        final int finalDelay = delay;
+        Thread gesture = new Thread() {
+            public void run() {
+                try {
+                    sleep(finalDelay);
+                    runRandomGesture(finalNum);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        gesture.start();
+    }
+
+    public void speak(String message, String language) {
+
+        try {
+            boolean b = RobotTextToSpeech.say(getConnectedRobot(), message, language);
+            if (b) {
+                Log.e("nao api", "speak: " + message + " successful");
+            } else {
+                Log.e("nao api", "speak: " + message + " failed");
+            }
+        } catch (RobotException e) {
+            Log.e("nao api", "Speak failed: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+    }
+
+    public void runRandomGesture(final int num) {
+        if (getConnectedRobot() == null) {
+            scan();
+        } else {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    for (int i = 0; i < num; i++) {
+                        int j = (int) (Math.random() * 10) + 1;
+                        runGesture("HandMotionBehavior" + j);
+                    }
+                }
+            }).start();
+        }
+    }
+
+    public void runGesture(final String name) {
+        if (getConnectedRobot() == null) {
+            scan();
+        } else {
+            try {
+                Log.e("ano api", "Gesture: " + name);
+                boolean b = RobotGesture.runGesture(getConnectedRobot(), name);
+                if (b) {
+                    Log.e("ano api", "run Gesture: " + name + " successful");
+                } else {
+                    Log.e("ano api", "run Gesture: " + name + " failed");
+                }
+            } catch (RobotException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     //mo google voice
@@ -1031,9 +1095,9 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
         try {
             Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
             intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                    RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                    "vi_VN");
             intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE,
-                    Locale.getDefault());
+                    "vi_VN");
             intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Bạn cần tư vấn....");
             startActivityForResult(intent, REQUEST_CODE);
         } catch (Exception e) {
@@ -1075,6 +1139,7 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
     private SpeechRecognizer recognizer;
 
     private File assetDir;
+
     private void loadRecording() {
         new AsyncTask<Void, Void, Exception>() {
             @Override
@@ -1132,7 +1197,19 @@ public class Home extends Activity implements View.OnClickListener, GoogleApiCli
             switch (mode) {
                 case BROWSE:
                     mode = Mode.TALK;
-                    talkTTS("tôi có thể giúp gì cho bạn");
+                    if (getConnectedRobot() == null) {
+                        talkTTS("tôi có thể giúp gì cho bạn");
+                    } else {
+
+                        //            runRandomGesture(3);
+
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                speak("tôi có thể giúp gì cho bạn", RobotTextToSpeech.ROBOT_TTS_LANG_VI);
+                            }
+                        }).start();
+                    }
                     break;
                 case TALK:
                     startVoiceRecognitionActivity();

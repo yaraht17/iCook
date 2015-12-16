@@ -33,7 +33,7 @@ public class SettingActivity extends Activity implements View.OnClickListener {
         NavTitle = (TextView) findViewById(R.id.NavTitle);
         barbtn = (Button) findViewById(R.id.barbtn);
 
-        NavTitle.setText("Settings");
+        NavTitle.setText("Cài đặt");
         NavTitle.setTypeface(font_tony);
         barbtn.setText(R.string.icon_back);
         barbtn.setTypeface(font_awesome);

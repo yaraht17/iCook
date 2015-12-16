@@ -75,10 +75,10 @@ public class AddUser extends Activity implements View.OnClickListener {
         if (userExtra != null) {
             fillData(userExtra);
             btnSave.setText("Sửa");
-            NavTitle.setText("Edit User");
+            NavTitle.setText("Sửa thành viên");
         } else {
             btnSave.setText("Thêm");
-            NavTitle.setText("Add User");
+            NavTitle.setText("Thêm thành viên");
         }
         NavTitle.setTypeface(font_tony);
         barbtn.setText(R.string.icon_back);
